@@ -236,8 +236,8 @@ Recomendacion:
 4. Configurar Nginx como proxy inverso.
 5. Crear `.env.example`.
 6. Crear el esqueleto de React.
-7. Crear el proyecto Laravel.
-8. Configurar las conexiones de Laravel con PostgreSQL y MariaDB.
+7. Crear el proyecto Laravel. Estado: completado en `backend/`.
+8. Configurar las conexiones de Laravel con PostgreSQL y MariaDB. Estado: base preparada con MariaDB como conexion principal y `auth_pgsql` como conexion secundaria.
 9. Crear las migraciones iniciales.
 10. Configurar WordPress con su base de datos separada.
 11. Anadir phpMyAdmin para desarrollo.
@@ -351,5 +351,11 @@ Cuando el director del proyecto lo autorice, el siguiente paso sera crear la est
 - Configuracion inicial de Nginx.
 - `.env.example`.
 - Carpetas `frontend/`, `backend/`, `wordpress/`, `database/`, `docker/` y `docs/`.
+
+Estado actual:
+
+- Frontend React/Vite creado en `frontend/`.
+- Backend Laravel creado en `backend/`.
+- Ruta de salud inicial disponible en `GET /api/health`.
 
 No se ejecutaran pruebas, builds, instalaciones ni levantamiento de contenedores sin permiso explicito.

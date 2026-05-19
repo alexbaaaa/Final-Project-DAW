@@ -40,6 +40,7 @@ frontend/.vite/
 
 backend/storage/logs/
 backend/bootstrap/cache/
+backend/database/*.sqlite
 
 wordpress/wp-content/uploads/*
 !wordpress/wp-content/uploads/.gitkeep

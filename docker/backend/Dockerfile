@@ -22,4 +22,4 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "if [ -f artisan ]; then php artisan serve --host=0.0.0.0 --port=8000; else echo 'Backend Laravel pendiente de crear en ./backend'; tail -f /dev/null; fi"]
+CMD ["sh", "-c", "if [ -f artisan ]; then if [ ! -f vendor/autoload.php ]; then composer install; fi; php artisan serve --host=0.0.0.0 --port=8000; else echo 'Backend Laravel pendiente de crear en ./backend'; tail -f /dev/null; fi"]

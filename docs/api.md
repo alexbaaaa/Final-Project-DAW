@@ -12,6 +12,7 @@ Este documento queda preparado para definir los endpoints del backend Laravel.
 
 ## Modulos iniciales previstos
 
+- Health check: `GET /api/health`.
 - Autenticacion.
 - Usuarios y roles.
 - Nadadores.
