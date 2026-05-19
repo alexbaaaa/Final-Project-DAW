@@ -25,3 +25,8 @@ Laravel tendra que configurar dos conexiones de base de datos:
 - Conexion secundaria a PostgreSQL para usuarios y credenciales.
 
 Esta separacion mejora el aislamiento de datos sensibles, pero aumenta la complejidad de migraciones, relaciones y backups. Conviene documentar cada modelo indicando en que base vive.
+
+## Versiones base
+
+- Backend: Laravel con PHP 8.4.
+- Frontend: React con Vite.
