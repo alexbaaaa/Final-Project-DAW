@@ -43,3 +43,9 @@ backend/bootstrap/cache/
 
 wordpress/wp-content/uploads/*
 !wordpress/wp-content/uploads/.gitkeep
+wordpress/wp-content/index.php
+wordpress/wp-content/plugins/akismet/
+wordpress/wp-content/plugins/hello.php
+wordpress/wp-content/plugins/index.php
+wordpress/wp-content/themes/index.php
+wordpress/wp-content/themes/twentytwenty*/
