@@ -5,7 +5,7 @@
 1. Crear `.env` a partir de `.env.example`.
 2. Ajustar credenciales locales.
 3. Hacer que el dominio `swimmingup` resuelva hacia la maquina Docker.
-4. Crear los proyectos reales de React y Laravel cuando se autorice.
+4. Crear el proyecto Laravel cuando se autorice.
 5. Levantar servicios con Docker Compose cuando se autorice.
 
 Comando previsto:
