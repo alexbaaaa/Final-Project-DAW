@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\BackController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -8,3 +10,5 @@ Route::get('/health', function () {
         'service' => 'swimming-up-api',
     ]);
 });
+
+Route::get('/back', [BackController::class, 'index']);
