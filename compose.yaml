@@ -10,6 +10,7 @@ services:
       - frontend
       - backend
       - wordpress
+      - phpmyadmin
     ports:
       - "${HTTP_PORT:-80}:80"
     networks:
@@ -104,8 +105,17 @@ services:
       WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
       WORDPRESS_CONFIG_EXTRA: |
-        define('WP_HOME', 'http://swimmingup/blog');
-        define('WP_SITEURL', 'http://swimmingup/blog');
+          define('WP_HOME', 'http://swimmingup/blog');
+          define('WP_SITEURL', 'http://swimmingup/blog');
+          define('WP_CONTENT_URL', 'http://swimmingup/blog/wp-content');
+
+          define('COOKIEPATH', '/blog/');
+          define('SITECOOKIEPATH', '/blog/');
+          define('ADMIN_COOKIE_PATH', '/blog/wp-admin');
+
+          if (isset($$_SERVER['HTTP_X_FORWARDED_PREFIX'])) {
+              $$_SERVER['REQUEST_URI'] = $$_SERVER['HTTP_X_FORWARDED_PREFIX'] . $$_SERVER['REQUEST_URI'];
+          }
     volumes:
       - ./wordpress/wp-content:/var/www/html/wp-content
       - wordpress_data:/var/www/html
@@ -120,11 +130,8 @@ services:
     environment:
       PMA_HOST: mariadb
       PMA_PORT: 3306
+      PMA_ABSOLUTE_URI: http://swimmingup/phpmyadmin/
       UPLOAD_LIMIT: ${PHPMYADMIN_UPLOAD_LIMIT:-64M}
-    ports:
-      - "${PHPMYADMIN_PORT:-8081}:80"
-    profiles:
-      - dev
     networks:
       - internal
 
