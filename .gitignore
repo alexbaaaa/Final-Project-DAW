@@ -21,3 +21,31 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+.gitmessage
+#promt para codex
+promt.txt
+estructura.txt
+
+### Swimming Up ###
+.env
+.env.*
+!.env.example
+
+node_modules/
+vendor/
+
+frontend/dist/
+frontend/.vite/
+
+backend/storage/logs/
+backend/bootstrap/cache/
+
+wordpress/wp-content/uploads/*
+!wordpress/wp-content/uploads/.gitkeep
+wordpress/wp-content/index.php
+wordpress/wp-content/plugins/akismet/
+wordpress/wp-content/plugins/hello.php
+wordpress/wp-content/plugins/index.php
+wordpress/wp-content/themes/index.php
+wordpress/wp-content/themes/twentytwenty*/
