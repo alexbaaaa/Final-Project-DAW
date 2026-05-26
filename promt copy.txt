@@ -1,0 +1,82 @@
+En este directorio tengo uno llamado wordpress, Solo vas a trabajar sobre este.
+Vas a trabajar como un experto dieñador en Wordpress. Quiero que trabajes y modifiques solo el tema llamado 
+swimmingup. Tu trabajo unicamente se va a basar en modificar el HTML incrustando todos los loop the worpres que creaas necesario.
+
+Te doy la idea general del tema: 
+El tema va a funcionar como un blog, el cual va a hablar sobre todo lo relacionado con el club de natacion 
+churrina de la vega. En este blog habrá noticas (post) sobre todo lo relacionado con el mundo de la natacion.
+Este blog servira tambien a modo de portal para notificar de noticas relevantes a eventos o cambios
+de estructura en el club, por tanto los usuarios pueden comentar los post y opinar sobre todo.
+Dentro habrá una pagina especial que servira para explicar el uso de la app que voy a desarrolla diferente al blog,
+Esta app funciona como portal para informar de detalles tecnicos a los nadadores como tiempos, competiciones etc.
+Por tango el blog me gustaría que tuviera una seccion la cual se explicano el fiuncionamiento de esta.
+
+La idea del temas consiste en tener una pagina principal la cual tendra dos secciones.
+1- Una a modo de hero con la ultima noticia. 
+    - Este hero quiero que ocupe la pantalla entera
+    - El hero mostrara la ultima noticia
+        - Esta noticia tendra de fondo la imagen principal del post
+        - El titulo en grande
+        - Un pequeño resumen
+        - El boton de ver mas  
+    - Tendra su menu que colapssará en resoluciones mas pequeñas
+        - El menu te lo explico mas adelante
+2- Otra con las noticas destacadas.
+    - Esta sección estara situada despues del hero
+    - Tendra un grid con "cards" de los post destacados (Aquellos que tenga la categoria "Featured")
+    - EL grid seran de 3 columnas
+    - Estos post seran las noticias con mayor relevancia en el club
+    - Su diseño lo dejo integramente a ti mientras tengan su imagen titulo y opcion de ver el post completo
+
+Otra paguina la cual sera un grid "desordenado" con todos los post exixstentes.
+    - Tiene qeue tener opcion de filtrar por categoria 
+    - Por defecto se ordenaran del mas reciente al mas antiguo
+    - No quiero paginación ya que no va a existir un volumen tan grande de noticias
+    - "Desordenado" me explico:
+        - Quiero que la apariencia sea la de un grid normal con 3 columnas.
+        pero las filas no tienen porque coincidir cada post puede estar situado a una altura diferente
+        a sus post de cada lado.
+
+Otra pagina la cual tendra por titulo "How to use the app"
+    - Esta todavia no tengo claro que contenido va a tener ya que no tengo definida la estructura de la app principal
+    - Asique dejamela en blanco o con un estilo minimo
+
+Obviamente tiene que existir la pagina de cada post. 
+    - La cual será estilo sidebar a la derecha
+    - Cada pagina de post tendra su imagen principal de fondo con el titulo encima para el primer pantallazo 
+    - Despues le seguíra la informacion del post con el sidebar
+    - De forma que si yo le doy a ver un post completo, lo primero que me salría sería el menu seguido de la imagen principal, con su titulo y justo debajo del titulo el autor
+    - A modo de la pagina principal solo que en este caso no hace falta que la imagen ocupe el espacio completo.
+    - El post al final tendra su seccion de comentarios. 
+    - En el sidebar habrá tres secciones: 
+        - Aparecera los post relacionados con la misma categoria
+        - Debajo los post destacados
+        - Y seguido los post mas recientes
+
+En cuanto al menu quiero que lo conformen cuatro elemnetos:
+1- "Home" el cual me llevaría a la pagina principal.
+2- "News" el cual me lleva a la paguina con todos los post
+3- "How to use the app" o "Learn about app" La cual ira a la explicación
+4- Un enlace a fuera de wordpres el cual me llevara a la app principal
+    - Este elemento del menu me gustaría que resaltara respecto a los demas
+    - Tendría que poner algo dle estilo: "swimmingup" o "swimmingup start"
+
+El footer me gustaría que fuera simple.
+    - Enlaces a redes sociales tanto de la app "swimmingup" como del club "CN Churriana de la vega"
+    - Inventate los nombres de ususarios de cada red social 
+    - Con instagram, facebook, x, y youtube sería suficiente
+    - Un enlace a la pagina de politicas de privacidad
+    - El copyright a nombre de "alexbaaaa"
+    - Y lo que te interese a ti para mejorar la experencia
+
+Por ultimo detalles a tener encuenta para el contexto
+
+1- La pagina va a estar integra en Ingles 
+2- Tengo parte del tema hecho pero solo me ha servido para probar la funcionalidad no te dejes llevar por lo que hay ya hecho.
+3- Puedes crear y borrar tantos archivos como creas necesarios solo y esclusivamente en la carpeta del tema, si necesitas modificar cualquier cosa fuera de esta carpeta pideme permiso antes.
+4- En este directorio existe una estructura de contenedores ya que la app se despliega todo junto por Docker. Por lo tanto no intentes
+    hacer ningun tipo de comprobación. Indicame que comprobaciones quieres que haga y las hare yo a mano.
+5- Por ultimo en el caso de que tenga que modificar algo del admin area, como añadir paginas o modificar el menu, indicamelo y yo lo hare a mano
+
+
+
