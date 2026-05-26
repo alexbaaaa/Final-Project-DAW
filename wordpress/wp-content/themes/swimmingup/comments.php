@@ -5,6 +5,17 @@ if ( post_password_required() ) {
 ?>
 
 <section id="comments" class="comments-area">
+	<?php if ( isset( $_GET['comment_delete'] ) ) : ?>
+		<?php $comment_delete_status = sanitize_key( wp_unslash( $_GET['comment_delete'] ) ); ?>
+		<?php if ( 'deleted' === $comment_delete_status ) : ?>
+			<p class="comments-feedback comments-feedback--success"><?php esc_html_e( 'Comment deleted.', 'swimmingup' ); ?></p>
+		<?php elseif ( 'forbidden' === $comment_delete_status ) : ?>
+			<p class="comments-feedback comments-feedback--error"><?php esc_html_e( 'You can only delete comments written by your user account.', 'swimmingup' ); ?></p>
+		<?php elseif ( 'failed' === $comment_delete_status ) : ?>
+			<p class="comments-feedback comments-feedback--error"><?php esc_html_e( 'The comment could not be deleted. Please try again.', 'swimmingup' ); ?></p>
+		<?php endif; ?>
+	<?php endif; ?>
+
 	<?php if ( have_comments() ) : ?>
 		<h2 class="comments-title">
 			<?php
@@ -24,6 +35,7 @@ if ( post_password_required() ) {
 					'style'      => 'ol',
 					'short_ping' => true,
 					'avatar_size' => 48,
+					'callback'   => 'swimmingup_comment_callback',
 				)
 			);
 			?>
