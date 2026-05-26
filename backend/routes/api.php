@@ -11,4 +11,4 @@ Route::get('/health', function () {
     ]);
 });
 
-Route::get('/back', [BackController::class, 'index']);
+Route::get('/', [BackController::class, 'index']);
