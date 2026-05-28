@@ -12,7 +12,7 @@
                     <p class="admin-subtle mb-4">
                         This is the management area where you can organize swimmers, events and times.
                     </p>
-                    <a href="{{ route('admin.home') }}" class="btn admin-btn-primary px-4">Enter The App</a>
+                    <a href="{{ route('admin.home') }}" class="btn admin-btn-primary px-4">Enter the App</a>
                 </div>
             </div>
         </div>

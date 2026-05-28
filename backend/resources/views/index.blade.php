@@ -1,5 +1,5 @@
 @extends('app.app')
 
 @section('content')
-    <h1>Bienvenido al admin Area de swimmingUp</h1>
+    <h1>Admin Area</h1>
 @endsection

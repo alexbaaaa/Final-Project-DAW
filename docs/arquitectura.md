@@ -13,7 +13,8 @@ Swimming Up se organiza como una aplicacion web por servicios:
 ## Flujo de peticiones
 
 - `/` se envia al frontend React.
-- `/api/` se envia al backend Laravel.
+- `/admin/` se envia al panel Laravel Blade.
+- `/api/` se envia a la API JSON de Laravel.
 - `/blog/` se envia a WordPress.
 - `/phpmyadmin/` se envia a phpMyAdmin cuando el perfil `dev` este activo.
 

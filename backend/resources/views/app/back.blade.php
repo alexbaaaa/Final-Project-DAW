@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Swimming Up Admin')</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" href="{{ asset('img/favicon.svg') }}" sizes="any">
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon.svg') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ asset('css/admin-area.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/adminArea.css') }}">
 </head>
 <body class="admin-back-shell">
     <header class="admin-topbar sticky-top shadow-sm">
