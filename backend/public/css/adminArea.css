@@ -11,10 +11,20 @@ body {
     color: var(--admin-text);
 }
 
-.admin-public-shell {
+.admin-public-shell,
+.admin-back-shell {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+.admin-public-shell {
+    background-color: #f1f6ff;
+}
+
+.admin-public-shell > main,
+.admin-back-shell > main {
+    flex: 1 0 auto;
 }
 
 .admin-topbar {

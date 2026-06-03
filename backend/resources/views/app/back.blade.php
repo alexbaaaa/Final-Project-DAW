@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Swimming Up Admin')</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" href="{{ asset('img/favicon.svg') }}" sizes="any">
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon.svg') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ asset('css/admin-area.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/adminArea.css') }}">
 </head>
 <body class="admin-back-shell">
     <header class="admin-topbar sticky-top shadow-sm">
@@ -31,6 +31,19 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @if(request()->routeIs('admin.times.*')) active @endif" href="{{ route('admin.times.index') }}">Times</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @if(request()->routeIs('admin.users.*') || request()->routeIs('admin.users_admin.*')) active @endif" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Users
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item @if(request()->routeIs('admin.users.*')) active @endif" href="{{ route('admin.users.index') }}">APP</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @if(request()->routeIs('admin.users_admin.*')) active @endif" href="{{ route('admin.users_admin.index') }}">Admin Area</a>
+                                </li>
+                            </ul>
                         </li>
                         <li class="nav-item ms-lg-2">
                             <a class="btn btn-sm admin-btn-primary mt-1 mt-lg-0" href="{{ route('admin.events.create') }}">Create Event</a>

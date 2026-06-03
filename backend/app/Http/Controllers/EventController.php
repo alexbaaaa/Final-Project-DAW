@@ -2,15 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class EventController extends Controller
 {
     public function index(): View
     {
+        $events = Event::query()
+            ->orderBy('id')
+            ->get(['id', 'event_name', 'description', 'event_date', 'categories']);
+
         return view('events.index', [
-            'events' => $this->events(),
+            'events' => $events,
         ]);
     }
 
@@ -19,82 +25,59 @@ class EventController extends Controller
         return view('events.create');
     }
 
-    public function store(): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
+        Event::query()->create($this->validatedPayload($request));
+
         return redirect()
             ->route('admin.events.index')
-            ->with('status_success', 'Event created successfully (visual demo mode).');
+            ->with('status_success', 'Event created successfully.');
     }
 
     public function show(int $event): View
     {
         return view('events.show', [
-            'event' => $this->findEvent($event),
+            'event' => Event::query()->findOrFail($event),
         ]);
     }
 
     public function edit(int $event): View
     {
         return view('events.edit', [
-            'event' => $this->findEvent($event),
+            'event' => Event::query()->findOrFail($event),
         ]);
     }
 
-    public function update(int $event): RedirectResponse
+    public function update(Request $request, int $event): RedirectResponse
     {
+        $record = Event::query()->findOrFail($event);
+        $record->fill($this->validatedPayload($request));
+        $record->save();
+
         return redirect()
             ->route('admin.events.edit', $event)
-            ->with('status_success', 'Event updated successfully (visual demo mode).');
+            ->with('status_success', 'Event updated successfully.');
     }
 
     public function destroy(int $event): RedirectResponse
     {
+        Event::query()->findOrFail($event)->delete();
+
         return redirect()
             ->route('admin.events.index')
-            ->with('status_success', "Event #{$event} deleted successfully (visual demo mode).");
+            ->with('status_success', "Event #{$event} deleted successfully.");
     }
 
     /**
-     * @return array<int, array<string, int|string>>
+     * @return array<string, mixed>
      */
-    private function events(): array
+    private function validatedPayload(Request $request): array
     {
-        return [
-            [
-                'id' => 1,
-                'event_name' => 'Regional Championship',
-                'description' => 'Official meet for 50m and 100m tests.',
-                'event_date' => '2026-06-08',
-                'categories' => 'Junior, Senior',
-            ],
-            [
-                'id' => 2,
-                'event_name' => 'City Cup',
-                'description' => 'Sprint focused local competition.',
-                'event_date' => '2026-07-14',
-                'categories' => 'Cadet, Junior',
-            ],
-            [
-                'id' => 3,
-                'event_name' => 'Summer Trial Day',
-                'description' => 'Internal event for performance tracking.',
-                'event_date' => '2026-08-02',
-                'categories' => 'All categories',
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, int|string>
-     */
-    private function findEvent(int $id): array
-    {
-        foreach ($this->events() as $event) {
-            if ($event['id'] === $id) {
-                return $event;
-            }
-        }
-
-        return $this->events()[0];
+        return $request->validate([
+            'event_name' => ['required', 'string', 'max:150'],
+            'description' => ['nullable', 'string'],
+            'event_date' => ['required', 'date'],
+            'categories' => ['required', 'string', 'max:255'],
+        ]);
     }
 }

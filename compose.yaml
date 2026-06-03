@@ -42,8 +42,8 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-local}
       APP_DOMAIN: ${APP_DOMAIN:-swimmingup}
-      APP_URL: ${APP_URL:-http://swimmingup/api}
-      ASSET_URL: ${ASSET_URL:-http://swimmingup/api}
+      APP_URL: ${APP_URL:-http://swimmingup/admin}
+      ASSET_URL: ${ASSET_URL:-http://swimmingup/admin}
       DB_CONNECTION: ${LARAVEL_DB_CONNECTION:-mariadb}
       DB_HOST: mariadb
       DB_PORT: 3306

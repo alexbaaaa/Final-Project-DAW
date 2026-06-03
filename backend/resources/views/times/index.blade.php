@@ -1,6 +1,6 @@
 @extends('app.back')
 
-@section('title', 'Times')
+@section('title', 'SwimmingUP-Times')
 
 @section('content')
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">

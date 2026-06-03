@@ -29,15 +29,23 @@
                 </div>
                 <div class="col-md-4">
                     <label for="category" class="form-label">Category</label>
-                    <input type="text" id="category" name="category" class="form-control" required>
+                    <select id="category" name="category" class="form-select" required>
+                        <option value="Prebenjamin">Prebenjamin</option>
+                        <option value="Benjamin">Benjamin</option>
+                        <option value="Alevin">Alevin</option>
+                        <option value="Infantil">Infantil</option>
+                        <option value="Junior">Junior</option>
+                        <option value="Absoluto Joven">Absoluto Joven</option>
+                        <option value="Absoluto" selected>Absoluto</option>
+                        <option value="Master">Master</option>
+                    </select>
                 </div>
                 <div class="col-md-4">
                     <label for="gender" class="form-label">Gender</label>
                     <select id="gender" name="gender" class="form-select" required>
-                        <option value="">Select</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
-                        <option value="Other">Other</option>
+                        <option value="Other" selected>Other</option>
                     </select>
                 </div>
                 <div class="col-12 d-flex justify-content-end gap-2 pt-2">

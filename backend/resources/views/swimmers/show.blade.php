@@ -20,4 +20,39 @@
             </div>
         </div>
     </div>
+
+    <div class="card admin-card shadow-sm mt-4">
+        <div class="card-body p-4">
+            <h2 class="h5 admin-page-title mb-3">Associated Times</h2>
+
+            @if($times->isEmpty())
+                <p class="admin-subtle mb-0">This swimmer does not have any times yet.</p>
+            @else
+                <div class="table-responsive">
+                    <table class="table admin-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Test Type</th>
+                                <th>Time</th>
+                                <th>Date</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($times as $timeRecord)
+                                <tr>
+                                    <td>{{ $timeRecord['id'] }}</td>
+                                    <td>{{ $timeRecord['test_type'] }}</td>
+                                    <td>{{ $timeRecord['time'] }}</td>
+                                    <td>{{ $timeRecord['date'] }}</td>
+                                    <td>{{ $timeRecord['location'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
 @endsection
