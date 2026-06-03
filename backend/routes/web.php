@@ -4,6 +4,8 @@ use App\Http\Controllers\BackController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\SwimmerController;
 use App\Http\Controllers\TimeController;
+use App\Http\Controllers\UserAdminController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [BackController::class, 'index'])->name('admin.index');
@@ -35,3 +37,19 @@ Route::get('/times/{time}', [TimeController::class, 'show'])->name('admin.times.
 Route::get('/times/{time}/edit', [TimeController::class, 'edit'])->name('admin.times.edit');
 Route::put('/times/{time}', [TimeController::class, 'update'])->name('admin.times.update');
 Route::delete('/times/{time}', [TimeController::class, 'destroy'])->name('admin.times.destroy');
+
+Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
+Route::get('/users/create', [UserController::class, 'create'])->name('admin.users.create');
+Route::post('/users', [UserController::class, 'store'])->name('admin.users.store');
+Route::get('/users/{user}', [UserController::class, 'show'])->name('admin.users.show');
+Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
+Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
+Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+
+Route::get('/users-admin', [UserAdminController::class, 'index'])->name('admin.users_admin.index');
+Route::get('/users-admin/create', [UserAdminController::class, 'create'])->name('admin.users_admin.create');
+Route::post('/users-admin', [UserAdminController::class, 'store'])->name('admin.users_admin.store');
+Route::get('/users-admin/{userAdmin}', [UserAdminController::class, 'show'])->name('admin.users_admin.show');
+Route::get('/users-admin/{userAdmin}/edit', [UserAdminController::class, 'edit'])->name('admin.users_admin.edit');
+Route::put('/users-admin/{userAdmin}', [UserAdminController::class, 'update'])->name('admin.users_admin.update');
+Route::delete('/users-admin/{userAdmin}', [UserAdminController::class, 'destroy'])->name('admin.users_admin.destroy');

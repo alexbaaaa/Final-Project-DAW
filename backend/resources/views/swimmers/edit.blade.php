@@ -30,7 +30,16 @@
                 </div>
                 <div class="col-md-4">
                     <label for="category" class="form-label">Category</label>
-                    <input type="text" id="category" name="category" class="form-control" value="{{ $swimmer['category'] }}" required>
+                    <select id="category" name="category" class="form-select" required>
+                        <option value="Prebenjamin" @if($swimmer['category'] === 'Prebenjamin') selected @endif>Prebenjamin</option>
+                        <option value="Benjamin" @if($swimmer['category'] === 'Benjamin') selected @endif>Benjamin</option>
+                        <option value="Alevin" @if($swimmer['category'] === 'Alevin') selected @endif>Alevin</option>
+                        <option value="Infantil" @if($swimmer['category'] === 'Infantil') selected @endif>Infantil</option>
+                        <option value="Junior" @if($swimmer['category'] === 'Junior') selected @endif>Junior</option>
+                        <option value="Absoluto Joven" @if($swimmer['category'] === 'Absoluto Joven') selected @endif>Absoluto Joven</option>
+                        <option value="Absoluto" @if($swimmer['category'] === 'Absoluto') selected @endif>Absoluto</option>
+                        <option value="Master" @if($swimmer['category'] === 'Master') selected @endif>Master</option>
+                    </select>
                 </div>
                 <div class="col-md-4">
                     <label for="gender" class="form-label">Gender</label>

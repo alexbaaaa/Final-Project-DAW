@@ -2,15 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Time;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TimeController extends Controller
 {
     public function index(): View
     {
+        $times = Time::query()
+            ->orderBy('id')
+            ->get(['id', 'swimmer_id', 'test_type', 'time', 'date', 'location']);
+
         return view('times.index', [
-            'times' => $this->times(),
+            'times' => $times,
         ]);
     }
 
@@ -19,85 +25,60 @@ class TimeController extends Controller
         return view('times.create');
     }
 
-    public function store(): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
+        Time::query()->create($this->validatedPayload($request));
+
         return redirect()
             ->route('admin.times.index')
-            ->with('status_success', 'Time created successfully (visual demo mode).');
+            ->with('status_success', 'Time created successfully.');
     }
 
     public function show(int $time): View
     {
         return view('times.show', [
-            'timeRecord' => $this->findTime($time),
+            'timeRecord' => Time::query()->findOrFail($time),
         ]);
     }
 
     public function edit(int $time): View
     {
         return view('times.edit', [
-            'timeRecord' => $this->findTime($time),
+            'timeRecord' => Time::query()->findOrFail($time),
         ]);
     }
 
-    public function update(int $time): RedirectResponse
+    public function update(Request $request, int $time): RedirectResponse
     {
+        $record = Time::query()->findOrFail($time);
+        $record->fill($this->validatedPayload($request));
+        $record->save();
+
         return redirect()
             ->route('admin.times.edit', $time)
-            ->with('status_success', 'Time updated successfully (visual demo mode).');
+            ->with('status_success', 'Time updated successfully.');
     }
 
     public function destroy(int $time): RedirectResponse
     {
+        Time::query()->findOrFail($time)->delete();
+
         return redirect()
             ->route('admin.times.index')
-            ->with('status_success', "Time #{$time} deleted successfully (visual demo mode).");
+            ->with('status_success', "Time #{$time} deleted successfully.");
     }
 
     /**
-     * @return array<int, array<string, int|string>>
+     * @return array<string, mixed>
      */
-    private function times(): array
+    private function validatedPayload(Request $request): array
     {
-        return [
-            [
-                'id' => 1,
-                'swimmer_id' => 1,
-                'test_type' => '100m Freestyle',
-                'time' => '00:59.44',
-                'date' => '2026-05-12',
-                'location' => 'Granada Pool',
-            ],
-            [
-                'id' => 2,
-                'swimmer_id' => 2,
-                'test_type' => '50m Butterfly',
-                'time' => '00:31.26',
-                'date' => '2026-05-19',
-                'location' => 'Sevilla Aquatic Center',
-            ],
-            [
-                'id' => 3,
-                'swimmer_id' => 3,
-                'test_type' => '200m Backstroke',
-                'time' => '02:17.02',
-                'date' => '2026-05-23',
-                'location' => 'Malaga Sports Complex',
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, int|string>
-     */
-    private function findTime(int $id): array
-    {
-        foreach ($this->times() as $time) {
-            if ($time['id'] === $id) {
-                return $time;
-            }
-        }
-
-        return $this->times()[0];
+        return $request->validate([
+            'swimmer_id' => ['required', 'integer', 'min:1', 'exists:swimmers,id'],
+            'test_type' => ['required', 'string', 'max:100'],
+            'time' => ['required', 'string', 'max:20'],
+            'date' => ['required', 'date'],
+            'location' => ['required', 'string', 'max:150'],
+        ]);
     }
 }

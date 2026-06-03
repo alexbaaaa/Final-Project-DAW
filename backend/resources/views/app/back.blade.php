@@ -32,6 +32,19 @@
                         <li class="nav-item">
                             <a class="nav-link @if(request()->routeIs('admin.times.*')) active @endif" href="{{ route('admin.times.index') }}">Times</a>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @if(request()->routeIs('admin.users.*') || request()->routeIs('admin.users_admin.*')) active @endif" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Users
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item @if(request()->routeIs('admin.users.*')) active @endif" href="{{ route('admin.users.index') }}">APP</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @if(request()->routeIs('admin.users_admin.*')) active @endif" href="{{ route('admin.users_admin.index') }}">Admin Area</a>
+                                </li>
+                            </ul>
+                        </li>
                         <li class="nav-item ms-lg-2">
                             <a class="btn btn-sm admin-btn-primary mt-1 mt-lg-0" href="{{ route('admin.events.create') }}">Create Event</a>
                         </li>
