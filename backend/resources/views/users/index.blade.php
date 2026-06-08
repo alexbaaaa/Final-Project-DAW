@@ -17,11 +17,12 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Alias</th>
                         <th>First Name</th>
                         <th>Last Name</th>
+                        <th>Birth Date</th>
                         <th>User Type</th>
-                        <th>Associated Swimmer</th>
-                        <th>Password Hash</th>
+                        <th>Associated Swimmers</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -29,17 +30,16 @@
                     @foreach($users as $user)
                         @php
                             $userTypeLabel = $user['user_type'] === 'legal_guardian' ? 'Legal Guardian' : 'Swimmer';
-                            $swimmerName = $user['swimmer_id'] ? ($swimmerOptions[$user['swimmer_id']] ?? 'Unknown') : 'N/A';
-                            $passwordValue = (string) ($user['password'] ?? '');
-                            $passwordPreview = strlen($passwordValue) > 18 ? substr($passwordValue, 0, 18) . '...' : $passwordValue;
+                            $swimmerNames = $userSwimmerNames[(int) $user['id']] ?? [];
                         @endphp
                         <tr>
                             <td>{{ $user['id'] }}</td>
+                            <td><code>{{ $user['alias'] }}</code></td>
                             <td>{{ $user['first_name'] }}</td>
                             <td>{{ $user['last_name'] }}</td>
+                            <td>{{ $user->birth_date?->toDateString() ?? 'N/A' }}</td>
                             <td>{{ $userTypeLabel }}</td>
-                            <td>{{ $swimmerName }}</td>
-                            <td><code>{{ $passwordPreview }}</code></td>
+                            <td>{{ count($swimmerNames) ? implode(', ', $swimmerNames) : 'N/A' }}</td>
                             <td>
                                 <div class="d-flex justify-content-end gap-2">
                                     <a href="{{ route('admin.users.show', $user['id']) }}" class="btn btn-sm btn-outline-primary">Show</a>

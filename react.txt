@@ -1,0 +1,33 @@
+Actúa como ingeniero senior de DevOps en react.
+
+Sigue haciendo lo exactamente lo mismo que has hecho antes, siguiendo la misma estetica.
+Vamos a trabajar en el contenedor del front 
+
+Ahora vamos ha crear la estructura completa de la aplicación.
+Primero empezamos por el Home de la app.
+
+Esta paguina va a ser la carta de presentación de la aplicación y va a tener las siguientes partes:
+1. Un titulo el cual ponga "Bienvenido a Swimming up" 
+    1.1. Este titulo tiene que tener una animacion especial:
+        Cuando pases el raton por encima de la palabra UP esta se da la vuelta y aparece la palabra app.
+    1.2. Tanto la palabra UP como APP tine que tener tonos de colores diferentes al resto del texto.
+2. Una pequeña descripción de la app la cual haga un juego de palabras con "leve up" ya que el titulo hace referencia a subir de nivel.
+    y seria siendo tambien el fonema up muy parecido a app. Entoces tiene doble sentido el titulo.
+    2.1. Swimming up de subir de niver en natacion y swimming app de aplicación de natación.
+    2.2. La descripción tiene que hablar sobre como esta aplicación va a ayudar a la mejora de los nadadores.
+3. Un boton con el testo de "Vamos a comenzar" el cual nos dirige a la paquina principal.
+    3.1. Ese boton tiene que tener los colores y tonos principales.
+    3.2. Al pasar el raton por encima este cambia al color secundario.
+    3.3. Este boton tiene que tener una animacion de "latido" para llamr la atención del ususario
+        3.3.1 La animacion tiene que ser sutil y activarse cada intervalos bastante largos para que no se vea todo el rato el boton latiendo sin parar.
+    3.4. Genera una paguina de prueba que simplemente tenga como texto "index de la app" para poder ver que funciona
+
+
+Aspectos generales a tener en cuenta:
+
+1. No realices ningun tipo de prueba.
+2. Todo tiene que seguir la misma estetica
+3. La paguina tiene que ser full-width
+4. Full responsive para formato movil y full HD 
+5. Todo en idioma Ingles
+

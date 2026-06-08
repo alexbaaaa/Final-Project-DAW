@@ -30,6 +30,9 @@
                             <a class="nav-link @if(request()->routeIs('admin.events.*')) active @endif" href="{{ route('admin.events.index') }}">Events</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link @if(request()->routeIs('admin.calendar.*')) active @endif" href="{{ route('admin.calendar.index') }}">Calendar</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link @if(request()->routeIs('admin.times.*')) active @endif" href="{{ route('admin.times.index') }}">Times</a>
                         </li>
                         <li class="nav-item dropdown">

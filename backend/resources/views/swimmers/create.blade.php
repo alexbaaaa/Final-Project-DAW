@@ -24,8 +24,8 @@
                     <input type="text" id="last_name" name="last_name" class="form-control" required>
                 </div>
                 <div class="col-md-4">
-                    <label for="age" class="form-label">Age</label>
-                    <input type="number" id="age" name="age" class="form-control" min="1" required>
+                    <label for="birth_date" class="form-label">Birth Date</label>
+                    <input type="date" id="birth_date" name="birth_date" class="form-control" value="{{ old('birth_date') }}" required>
                 </div>
                 <div class="col-md-4">
                     <label for="category" class="form-label">Category</label>

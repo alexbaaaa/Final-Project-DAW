@@ -1,0 +1,25 @@
+Actúa como ingeniero senior de DevOps.
+
+Vamos a corregir la estructura de la base de datos.
+
+En este caso puedes realizar las migraciones necesarias.
+Modificar tablas existentes.
+
+Para este caso puedes realizar todas las pruebas necesarias para validar el correcto funcionamiento de la base de datos.
+
+Los cambios a realizar son los siguientes:
+1. En la tabla de usuarios de la aplicacion.
+    1.1. Se añadira un campo alias o nombre de ususario, el cual se formara automaticamente al juntar la primera letra del nombre
+        con el primer apellido mas los dos ultimos dijitos del año de nacimiento. Ejemlo: Alejandro Aguilera Lopez 31/03/2001 = aaguilera01.
+    1.2. Este alias servira en el login de la app como identificador de los usuarios, por tanto en el caso de que dos alias coincidan se utilizara el segundo apellido en vez del primero.
+    1.3. Por tanto modifica el login de la app para que tome el alias y no el id.
+    1.4. En el admin area por proteccion de datos no podemos crear la contraseña. 
+    1.5. Cada vez que el admin area crea un usuario este creara la contraseña igual al alias.
+    1.6. En el caso de un menor de 16 años el que da de alta es su tutor legal por tanto este usuario tiene que tener la capacidad de poder asisgnarse varios nadadores.
+    1.7. en el desplegable de selecionar nadador asociado tiene que salir la lista de nadadores con menos de 16 años.
+2. En la tabla de nadadores:
+    2.1. Modifica el campo edad por fecha de nacimiento para ser mas exactos 
+    2.2. En el index de esta tabla seguir mostrando la edad calculada a partir de la fecha de nacimiento.
+    2.3. En el show si mostramos la fecha y ademas un campo extra para la edad.
+
+A parte de estos cambios comprueba de que la tabla calendar esta correctamente creada
