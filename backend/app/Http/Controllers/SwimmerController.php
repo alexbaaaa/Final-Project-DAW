@@ -34,7 +34,7 @@ class SwimmerController extends Controller
     {
         $swimmers = Swimmer::query()
             ->orderBy('id')
-            ->get(['id', 'first_name', 'last_name', 'age', 'category', 'gender']);
+            ->get(['id', 'first_name', 'last_name', 'birth_date', 'category', 'gender']);
 
         return view('swimmers.index', [
             'swimmers' => $swimmers,
@@ -105,7 +105,7 @@ class SwimmerController extends Controller
         return $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'age' => ['required', 'integer', 'min:1', 'max:120'],
+            'birth_date' => ['required', 'date', 'before_or_equal:today'],
             'category' => ['required', 'string', Rule::in(self::CATEGORIES)],
             'gender' => ['required', 'string', Rule::in(self::GENDERS)],
         ]);

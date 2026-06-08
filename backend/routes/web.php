@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BackController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\SwimmerController;
 use App\Http\Controllers\TimeController;
@@ -29,6 +30,14 @@ Route::get('/events/{event}', [EventController::class, 'show'])->name('admin.eve
 Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('admin.events.edit');
 Route::put('/events/{event}', [EventController::class, 'update'])->name('admin.events.update');
 Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('admin.events.destroy');
+
+Route::get('/calendar', [CalendarController::class, 'index'])->name('admin.calendar.index');
+Route::get('/calendar/create', [CalendarController::class, 'create'])->name('admin.calendar.create');
+Route::post('/calendar', [CalendarController::class, 'store'])->name('admin.calendar.store');
+Route::get('/calendar/{calendar}', [CalendarController::class, 'show'])->name('admin.calendar.show');
+Route::get('/calendar/{calendar}/edit', [CalendarController::class, 'edit'])->name('admin.calendar.edit');
+Route::put('/calendar/{calendar}', [CalendarController::class, 'update'])->name('admin.calendar.update');
+Route::delete('/calendar/{calendar}', [CalendarController::class, 'destroy'])->name('admin.calendar.destroy');
 
 Route::get('/times', [TimeController::class, 'index'])->name('admin.times.index');
 Route::get('/times/create', [TimeController::class, 'create'])->name('admin.times.create');

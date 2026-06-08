@@ -14,9 +14,10 @@
                 <div class="col-md-3"><strong>ID</strong><div>{{ $swimmer['id'] }}</div></div>
                 <div class="col-md-3"><strong>First Name</strong><div>{{ $swimmer['first_name'] }}</div></div>
                 <div class="col-md-3"><strong>Last Name</strong><div>{{ $swimmer['last_name'] }}</div></div>
-                <div class="col-md-3"><strong>Age</strong><div>{{ $swimmer['age'] }}</div></div>
+                <div class="col-md-3"><strong>Birth Date</strong><div>{{ $swimmer->birth_date?->toDateString() ?? 'N/A' }}</div></div>
+                <div class="col-md-3"><strong>Age</strong><div>{{ $swimmer['age'] ?? 'N/A' }}</div></div>
                 <div class="col-md-6"><strong>Category</strong><div>{{ $swimmer['category'] }}</div></div>
-                <div class="col-md-6"><strong>Gender</strong><div>{{ $swimmer['gender'] }}</div></div>
+                <div class="col-md-3"><strong>Gender</strong><div>{{ $swimmer['gender'] }}</div></div>
             </div>
         </div>
     </div>

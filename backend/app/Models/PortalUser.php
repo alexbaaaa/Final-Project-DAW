@@ -11,8 +11,10 @@ class PortalUser extends Model
     protected $table = 'users';
 
     protected $fillable = [
+        'alias',
         'first_name',
         'last_name',
+        'birth_date',
         'user_type',
         'password',
         'swimmer_id',
@@ -25,9 +27,9 @@ class PortalUser extends Model
     protected function casts(): array
     {
         return [
+            'birth_date' => 'date',
             'password' => 'hashed',
             'swimmer_id' => 'integer',
         ];
     }
 }
-
