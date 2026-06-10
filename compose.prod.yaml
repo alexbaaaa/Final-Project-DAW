@@ -113,14 +113,32 @@ services:
     networks:
       - internal
 
+  wordpress-db-setup:
+    image: mariadb:11.4
+    container_name: swimmingup_wordpress_db_setup
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+    volumes:
+      - ./scripts/deploy/ensure-wordpress-db.sh:/usr/local/bin/ensure-wordpress-db:ro
+    command: ["sh", "/usr/local/bin/ensure-wordpress-db"]
+    restart: "no"
+    networks:
+      - internal
+
   wordpress:
     build:
       context: .
       dockerfile: docker/wordpress/Dockerfile
     container_name: swimmingup_wordpress
     depends_on:
-      mariadb:
-        condition: service_healthy
+      wordpress-db-setup:
+        condition: service_completed_successfully
     environment:
       WORDPRESS_DB_HOST: mariadb:3306
       WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
