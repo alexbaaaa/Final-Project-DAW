@@ -62,5 +62,6 @@ sh scripts/deploy/check-db-connections.sh
 
 - phpMyAdmin no se expone publicamente en produccion. Si se necesita depurar, levantarlo con el perfil `debug` y acceder por tunel SSH al puerto local configurado.
 - Las bases de datos no deben publicar puertos al host.
-- Si las bases aparecen como `healthy` pero fallan las conexiones, revisar primero `sh scripts/deploy/check-db-connections.sh`. Si el error es de usuario o contrasena y ya existian volumenes, Docker no reaplica las variables nuevas sobre bases inicializadas; hay que actualizar credenciales dentro de la base o recrear volumenes tras backup.
+- El `healthcheck` de MariaDB/PostgreSQL comprueba que el motor acepta conexiones. Las credenciales reales se validan despues con `sh scripts/deploy/check-db-connections.sh`, para que un usuario mal sincronizado no bloquee el arranque de toda la pila.
+- Si el script de conexiones falla por usuario o contrasena y ya existian volumenes, Docker no reaplica las variables nuevas sobre bases inicializadas; hay que actualizar credenciales dentro de la base o recrear volumenes tras backup.
 - Antes de introducir datos reales, definir politica de backups y restauracion.
