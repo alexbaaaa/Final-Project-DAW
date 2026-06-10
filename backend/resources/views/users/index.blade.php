@@ -3,58 +3,99 @@
 @section('title', 'App Users')
 
 @section('content')
+    @php
+        $currentAdminUser = $currentAdminUser ?? null;
+    @endphp
+
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div>
             <h1 class="h3 admin-page-title mb-1">App Users</h1>
-            <p class="admin-subtle mb-0">Manage login users for the React application.</p>
+            <p class="admin-subtle mb-0">Manage login users for the application.</p>
         </div>
-        <a href="{{ route('admin.users.create') }}" class="btn admin-btn-primary">Create User</a>
+        <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
+            <form action="{{ route('admin.users.index') }}" method="get" data-users-filter-form>
+                <label for="user_type_filter" class="visually-hidden">Filter by user type</label>
+                <select id="user_type_filter" name="user_type" class="form-select form-select-sm" data-users-filter-select>
+                    <option value="all" @selected($activeUserTypeFilter === 'all')>All</option>
+                    <option value="swimmer" @selected($activeUserTypeFilter === 'swimmer')>Swimmer</option>
+                    <option value="legal_guardian" @selected($activeUserTypeFilter === 'legal_guardian')>Legal Guardian</option>
+                    <option value="other" @selected($activeUserTypeFilter === 'other')>Other</option>
+                </select>
+                <noscript>
+                    <button type="submit" class="btn btn-sm btn-outline-secondary mt-2">Filter</button>
+                </noscript>
+            </form>
+            <a href="{{ route('admin.users.create') }}" class="btn admin-btn-primary">Create User</a>
+        </div>
     </div>
 
-    <div class="card admin-card shadow-sm">
-        <div class="table-responsive">
-            <table class="table admin-table align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Alias</th>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Birth Date</th>
-                        <th>User Type</th>
-                        <th>Associated Swimmers</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                        @php
-                            $userTypeLabel = $user['user_type'] === 'legal_guardian' ? 'Legal Guardian' : 'Swimmer';
-                            $swimmerNames = $userSwimmerNames[(int) $user['id']] ?? [];
-                        @endphp
-                        <tr>
-                            <td>{{ $user['id'] }}</td>
-                            <td><code>{{ $user['alias'] }}</code></td>
-                            <td>{{ $user['first_name'] }}</td>
-                            <td>{{ $user['last_name'] }}</td>
-                            <td>{{ $user->birth_date?->toDateString() ?? 'N/A' }}</td>
-                            <td>{{ $userTypeLabel }}</td>
-                            <td>{{ count($swimmerNames) ? implode(', ', $swimmerNames) : 'N/A' }}</td>
-                            <td>
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="{{ route('admin.users.show', $user['id']) }}" class="btn btn-sm btn-outline-primary">Show</a>
-                                    <a href="{{ route('admin.users.edit', $user['id']) }}" class="btn btn-sm btn-outline-warning">Update</a>
-                                    <form action="{{ route('admin.users.destroy', $user['id']) }}" method="post" onsubmit="return confirm('Do you really want to delete this user?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+    <div id="usersTableContainer">
+        @include('users.partials.table')
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    (() => {
+        const form = document.querySelector('[data-users-filter-form]');
+        const select = document.querySelector('[data-users-filter-select]');
+        const tableContainer = document.getElementById('usersTableContainer');
+
+        if (!form || !select || !tableContainer) {
+            return;
+        }
+
+        const buildUrl = () => {
+            const url = new URL(form.action, window.location.href);
+            const formData = new FormData(form);
+
+            formData.forEach((value, key) => {
+                url.searchParams.set(key, value);
+            });
+
+            return url;
+        };
+
+        const loadFilteredUsers = async () => {
+            const url = buildUrl();
+
+            select.disabled = true;
+            tableContainer.setAttribute('aria-busy', 'true');
+            tableContainer.classList.add('opacity-50');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'text/html',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Unexpected response status ${response.status}`);
+                }
+
+                tableContainer.innerHTML = await response.text();
+                window.history.replaceState({}, '', url);
+            } catch (error) {
+                form.submit();
+            } finally {
+                select.disabled = false;
+                tableContainer.removeAttribute('aria-busy');
+                tableContainer.classList.remove('opacity-50');
+            }
+        };
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            loadFilteredUsers();
+        });
+
+        select.addEventListener('change', () => {
+            loadFilteredUsers();
+        });
+    })();
+</script>
+@endpush

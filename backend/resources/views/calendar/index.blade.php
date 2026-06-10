@@ -19,6 +19,9 @@
                         <th>ID</th>
                         <th>Date</th>
                         <th>Type</th>
+                        <th>Event</th>
+                        <th>Day Scope</th>
+                        <th>Categories</th>
                         <th>Title</th>
                         <th>Description</th>
                         <th class="text-end">Actions</th>
@@ -26,10 +29,27 @@
                 </thead>
                 <tbody>
                     @foreach($calendarDays as $calendarDay)
+                        @php
+                            $calendarCategories = array_filter(array_map('trim', explode(',', (string) $calendarDay['categories'])));
+                            $concreteCategories = array_values(array_filter($categoryOptions, fn ($category) => $category !== 'All'));
+
+                            if (in_array('All', $calendarCategories, true) || count(array_diff($concreteCategories, $calendarCategories)) === 0) {
+                                $calendarCategories = ['All'];
+                            }
+                        @endphp
                         <tr>
                             <td>{{ $calendarDay['id'] }}</td>
                             <td>{{ $calendarDay->date->toDateString() }}</td>
                             <td>{{ $dayTypeLabels[$calendarDay['day_type']] ?? $calendarDay['day_type'] }}</td>
+                            <td>{{ $calendarDay->event?->event_name ?? 'N/A' }}</td>
+                            <td>{{ $dayScopeLabels[$calendarDay['day_scope']] ?? $calendarDay['day_scope'] ?? 'Full day' }}</td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($calendarCategories as $category)
+                                        <span class="badge text-bg-secondary">{{ $category }}</span>
+                                    @endforeach
+                                </div>
+                            </td>
                             <td>{{ $calendarDay['title'] ?? 'N/A' }}</td>
                             <td>{{ $calendarDay['description'] ?? 'N/A' }}</td>
                             <td>

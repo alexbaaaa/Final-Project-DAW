@@ -9,7 +9,7 @@
                 <div class="card-body text-center p-4 p-lg-5">
                     <h1 class="h3 admin-page-title mb-3">Admin Dashboard</h1>
                     <p class="admin-subtle mb-4">
-                        Manage swimmers, events, times and users from the navigation menu.
+                        Manage swimmers, events, training groups, times and users from the navigation menu.
                     </p>
                     <a href="{{ route('admin.events.create') }}" class="btn admin-btn-warning px-4">
                         Create Event
