@@ -1,0 +1,142 @@
+:root {
+    --admin-blue: #0a4fa4;
+    --admin-blue-soft: #eaf1fb;
+    --admin-yellow: #f4c500;
+    --admin-border: #d9dee7;
+    --admin-text: #1f2a3a;
+}
+
+body {
+    background: #f8fafc;
+    color: var(--admin-text);
+}
+
+.admin-public-shell,
+.admin-back-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-public-shell {
+    background-color: #f1f6ff;
+}
+
+.admin-public-shell > main,
+.admin-back-shell > main {
+    flex: 1 0 auto;
+}
+
+.admin-topbar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-topbar .navbar-brand {
+    color: var(--admin-blue);
+}
+
+.admin-topbar .nav-link {
+    color: #27405f;
+    border-radius: 0.4rem;
+    padding: 0.45rem 0.75rem;
+}
+
+.admin-topbar .nav-link:hover,
+.admin-topbar .nav-link.active {
+    color: var(--admin-blue);
+    background: var(--admin-blue-soft);
+}
+
+.admin-btn-primary {
+    background: var(--admin-blue);
+    border-color: var(--admin-blue);
+    color: #fff;
+}
+
+.admin-btn-primary:hover {
+    background: #073f84;
+    border-color: #073f84;
+    color: #fff;
+}
+
+.admin-btn-warning {
+    background: var(--admin-yellow);
+    border-color: var(--admin-yellow);
+    color: #1c2430;
+    font-weight: 600;
+}
+
+.admin-btn-warning:hover {
+    background: #d8af00;
+    border-color: #d8af00;
+    color: #1c2430;
+}
+
+.admin-card {
+    border: 1px solid var(--admin-border);
+    border-top: 4px solid var(--admin-yellow);
+    border-radius: 0.6rem;
+    background: #ffffff;
+}
+
+.admin-card-header {
+    border-bottom: 1px solid var(--admin-border);
+    background: #ffffff;
+}
+
+.admin-table thead th {
+    background: var(--admin-blue-soft);
+    color: var(--admin-blue);
+    border-bottom: 2px solid var(--admin-border);
+}
+
+.admin-badge {
+    background: var(--admin-blue-soft);
+    color: var(--admin-blue);
+    border: 1px solid #c9d9f1;
+}
+
+.admin-page-title {
+    color: var(--admin-blue);
+}
+
+.admin-subtle {
+    color: #5e6f86;
+}
+
+.training-schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.training-schedule-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid #c9d9f1;
+    border-left: 4px solid var(--admin-yellow);
+    border-radius: 0.45rem;
+    background: var(--admin-blue-soft);
+    color: var(--admin-text);
+    padding: 0.65rem 0.75rem;
+}
+
+.training-schedule-empty {
+    border: 1px dashed var(--admin-border);
+    border-radius: 0.45rem;
+    color: #6c7d92;
+    padding: 0.75rem;
+}
+
+.training-schedule-editor {
+    background: #fbfdff;
+}
+
+.training-schedule-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}

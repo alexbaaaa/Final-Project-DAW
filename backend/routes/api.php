@@ -1,8 +1,7 @@
 <?php
 
+use App\Http\Controllers\FrontController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Controller;
-use App\Http\Controllers\BackController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -11,4 +10,7 @@ Route::get('/health', function () {
     ]);
 });
 
-Route::get('/back', [BackController::class, 'index']);
+Route::get('/front/users', [FrontController::class, 'users'])->name('front.users');
+Route::post('/front/login', [FrontController::class, 'login'])->name('front.login');
+Route::post('/front/change-password', [FrontController::class, 'changePassword'])->name('front.change_password');
+Route::get('/front/app-data', [FrontController::class, 'appData'])->name('front.app_data');
