@@ -52,8 +52,15 @@ docker compose -f compose.prod.yaml --env-file .env.production exec backend php 
 
 Para el primer despliegue tambien se puede usar `RUN_MIGRATIONS=true` en `.env.production` y volverlo a `false` despues.
 
+9. Verificar las conexiones reales a las bases de datos:
+
+```bash
+sh scripts/deploy/check-db-connections.sh
+```
+
 ## Notas
 
 - phpMyAdmin no se expone publicamente en produccion. Si se necesita depurar, levantarlo con el perfil `debug` y acceder por tunel SSH al puerto local configurado.
 - Las bases de datos no deben publicar puertos al host.
+- Si las bases aparecen como `healthy` pero fallan las conexiones, revisar primero `sh scripts/deploy/check-db-connections.sh`. Si el error es de usuario o contrasena y ya existian volumenes, Docker no reaplica las variables nuevas sobre bases inicializadas; hay que actualizar credenciales dentro de la base o recrear volumenes tras backup.
 - Antes de introducir datos reales, definir politica de backups y restauracion.
