@@ -1,0 +1,180 @@
+name: swimming-up-prod
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile.prod
+    container_name: swimmingup_nginx_prod
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+      - wordpress
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    networks:
+      - swimmingup_prod
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile.prod
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+    container_name: swimmingup_frontend_prod
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - swimmingup_prod
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile.prod
+    container_name: swimmingup_backend_prod
+    restart: unless-stopped
+    environment:
+      APP_NAME: ${APP_NAME:-Swimming Up}
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_KEY: ${APP_KEY}
+      APP_DOMAIN: ${APP_DOMAIN:-TU_DOMINIO.com}
+      APP_URL: ${APP_URL:-http://TU_DOMINIO.com/admin}
+      ASSET_URL: ${ASSET_URL:-http://TU_DOMINIO.com/admin}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      LOG_LEVEL: ${LOG_LEVEL:-warning}
+      DB_CONNECTION: ${LARAVEL_DB_CONNECTION:-mariadb}
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_DATABASE: ${MARIADB_DATABASE}
+      DB_USERNAME: ${MARIADB_USER}
+      DB_PASSWORD: ${MARIADB_PASSWORD}
+      AUTH_DB_HOST: postgres
+      AUTH_DB_PORT: 5432
+      AUTH_DB_DATABASE: ${POSTGRES_DB}
+      AUTH_DB_USERNAME: ${POSTGRES_USER}
+      AUTH_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SESSION_DRIVER: ${SESSION_DRIVER:-file}
+      SESSION_DOMAIN: ${SESSION_DOMAIN:-null}
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-false}
+      SESSION_SAME_SITE: ${SESSION_SAME_SITE:-lax}
+      CACHE_STORE: ${CACHE_STORE:-file}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+    depends_on:
+      - mariadb
+      - postgres
+    expose:
+      - "80"
+    volumes:
+      - backend_storage:/var/www/html/storage
+    networks:
+      - swimmingup_prod
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: swimmingup_postgres_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - swimmingup_prod
+
+  mariadb:
+    image: mariadb:11.4
+    container_name: swimmingup_mariadb_prod
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+    expose:
+      - "3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./database/mariadb/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - swimmingup_prod
+
+  wordpress:
+    build:
+      context: .
+      dockerfile: docker/wordpress/Dockerfile
+    container_name: swimmingup_wordpress_prod
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+    environment:
+      WORDPRESS_DB_HOST: mariadb:3306
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WP_HOME: ${WP_HOME:-http://TU_DOMINIO.com/blog}
+      WP_SITEURL: ${WP_SITEURL:-http://TU_DOMINIO.com/blog}
+      WP_CONTENT_URL: ${WP_CONTENT_URL:-http://TU_DOMINIO.com/blog/wp-content}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', getenv('WP_HOME') ?: 'http://TU_DOMINIO.com/blog');
+        define('WP_SITEURL', getenv('WP_SITEURL') ?: 'http://TU_DOMINIO.com/blog');
+        define('WP_CONTENT_URL', getenv('WP_CONTENT_URL') ?: 'http://TU_DOMINIO.com/blog/wp-content');
+
+        define('COOKIEPATH', '/blog/');
+        define('SITECOOKIEPATH', '/blog/');
+        define('ADMIN_COOKIE_PATH', '/blog/wp-admin');
+
+        if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+            $$_SERVER['HTTPS'] = 'on';
+        }
+
+        if (isset($$_SERVER['HTTP_X_FORWARDED_PREFIX'])) {
+            $$_SERVER['REQUEST_URI'] = $$_SERVER['HTTP_X_FORWARDED_PREFIX'] . $$_SERVER['REQUEST_URI'];
+        }
+    expose:
+      - "80"
+    volumes:
+      - wordpress_data:/var/www/html
+      - wordpress_wp_content:/var/www/html/wp-content
+    networks:
+      - swimmingup_prod
+
+  phpmyadmin:
+    image: phpmyadmin:5.2-apache
+    container_name: swimmingup_phpmyadmin_prod
+    profiles:
+      - debug
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_ABSOLUTE_URI: http://127.0.0.1:${PHPMYADMIN_PORT:-8081}/
+      UPLOAD_LIMIT: ${PHPMYADMIN_UPLOAD_LIMIT:-64M}
+    ports:
+      - "127.0.0.1:${PHPMYADMIN_PORT:-8081}:80"
+    networks:
+      - swimmingup_prod
+
+networks:
+  swimmingup_prod:
+    name: swimmingup_prod
+    driver: bridge
+
+volumes:
+  backend_storage:
+  postgres_data:
+  mariadb_data:
+  wordpress_data:
+  wordpress_wp_content:

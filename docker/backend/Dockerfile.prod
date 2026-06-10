@@ -1,0 +1,38 @@
+FROM php:8.4-apache
+
+WORKDIR /var/www/html
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git \
+        libicu-dev \
+        libpq-dev \
+        libzip-dev \
+        unzip \
+        zip \
+    && docker-php-ext-install \
+        intl \
+        pdo_mysql \
+        pdo_pgsql \
+        zip \
+    && a2enmod rewrite headers \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY docker/backend/apache.prod.conf /etc/apache2/sites-available/000-default.conf
+COPY docker/backend/entrypoint.prod.sh /usr/local/bin/swimmingup-backend-entrypoint
+
+COPY backend/ ./
+
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
+    && mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R ug+rwX storage bootstrap/cache \
+    && sed -i 's/\r$//' /usr/local/bin/swimmingup-backend-entrypoint \
+    && chmod +x /usr/local/bin/swimmingup-backend-entrypoint
+
+EXPOSE 80
+
+ENTRYPOINT ["swimmingup-backend-entrypoint"]
+CMD ["apache2-foreground"]
