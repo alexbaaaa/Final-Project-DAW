@@ -6,6 +6,8 @@ use App\Models\Calendar;
 use App\Models\Event;
 use App\Models\PortalUser;
 use App\Models\Swimmer;
+use App\Models\Time;
+use App\Models\TrainingGroup;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +21,7 @@ class FrontController extends Controller
     {
         $users = PortalUser::query()
             ->orderBy('id')
-            ->get(['id', 'alias', 'first_name', 'last_name', 'birth_date', 'user_type', 'swimmer_id', 'created_at'])
+            ->get(['id', 'alias', 'first_name', 'last_name', 'birth_date', 'user_type', 'swimmer_id', 'is_enabled', 'must_change_password', 'created_at'])
             ->map(fn (PortalUser $user): array => $this->serializeUser($user));
 
         return response()->json([
@@ -44,11 +46,64 @@ class FrontController extends Controller
             ], 401);
         }
 
+        if (!$user->is_enabled) {
+            return response()->json([
+                'message' => 'This account is disabled until the swimmer is at least 16 years old.',
+            ], 403);
+        }
+
         $swimmers = $this->resolveSwimmers($user);
 
         return response()->json([
             'data' => [
                 'user' => $this->serializeUser($user),
+                'requires_password_change' => (bool) $user->must_change_password,
+                'swimmer' => $this->serializeSwimmer($swimmers->first()),
+                'swimmers' => $swimmers->map(fn (Swimmer $swimmer): array => $this->serializeSwimmer($swimmer))->values(),
+            ],
+        ]);
+    }
+
+    public function changePassword(Request $request): JsonResponse
+    {
+        $payload = $request->validate([
+            'user_id' => ['required', 'integer', 'min:1'],
+            'current_password' => ['required', 'string'],
+            'password' => [
+                'required',
+                'confirmed',
+                'string',
+                'min:8',
+                'regex:/[A-Z]/',
+                'regex:/[^A-Za-z0-9]/',
+            ],
+        ]);
+
+        $user = PortalUser::query()->findOrFail($payload['user_id']);
+
+        if (!$user->is_enabled) {
+            return response()->json([
+                'message' => 'This account is disabled until the swimmer is at least 16 years old.',
+            ], 403);
+        }
+
+        if (!Hash::check($payload['current_password'], (string) $user->getAttribute('password'))) {
+            return response()->json([
+                'message' => 'Current password is not valid.',
+            ], 401);
+        }
+
+        $user->forceFill([
+            'password' => $payload['password'],
+            'must_change_password' => false,
+        ])->save();
+
+        $swimmers = $this->resolveSwimmers($user);
+
+        return response()->json([
+            'data' => [
+                'user' => $this->serializeUser($user->refresh()),
+                'requires_password_change' => false,
                 'swimmer' => $this->serializeSwimmer($swimmers->first()),
                 'swimmers' => $swimmers->map(fn (Swimmer $swimmer): array => $this->serializeSwimmer($swimmer))->values(),
             ],
@@ -60,11 +115,39 @@ class FrontController extends Controller
         $validated = $request->validate([
             'user_id' => ['required', 'integer', 'min:1'],
             'month' => ['nullable', 'date_format:Y-m'],
+            'swimmer_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $user = PortalUser::query()->findOrFail($validated['user_id']);
+
+        if (!$user->is_enabled) {
+            return response()->json([
+                'message' => 'This account is disabled until the swimmer is at least 16 years old.',
+            ], 423);
+        }
+
+        if ($user->must_change_password) {
+            return response()->json([
+                'message' => 'Password change is required before accessing the application.',
+            ], 403);
+        }
+
         $swimmers = $this->resolveSwimmers($user);
-        $categories = $swimmers
+        $selectedSwimmer = null;
+
+        if (isset($validated['swimmer_id'])) {
+            $selectedSwimmer = $swimmers->firstWhere('id', (int) $validated['swimmer_id']);
+
+            if (!$selectedSwimmer) {
+                return response()->json([
+                    'message' => 'Selected swimmer is not linked to this user.',
+                ], 403);
+            }
+        }
+
+        $profileSwimmer = $selectedSwimmer ?? $swimmers->first();
+        $activeSwimmers = $selectedSwimmer ? collect([$selectedSwimmer]) : $swimmers;
+        $categories = $activeSwimmers
             ->pluck('category')
             ->filter()
             ->unique()
@@ -74,9 +157,15 @@ class FrontController extends Controller
             : now()->startOfMonth();
         $startDate = $month->copy()->startOfMonth();
         $endDate = $month->copy()->endOfMonth();
+        $weekStartDate = now()->startOfWeek(Carbon::MONDAY);
+        $weekEndDate = now()->endOfWeek(Carbon::SUNDAY);
+        $queryStartDate = $startDate->lessThan($weekStartDate) ? $startDate->copy() : $weekStartDate->copy();
+        $queryEndDate = $endDate->greaterThan($weekEndDate) ? $endDate->copy() : $weekEndDate->copy();
+        $trainingGroup = $this->resolveTrainingGroup($profileSwimmer);
 
         $events = Event::query()
-            ->whereBetween('event_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->whereRaw('COALESCE(event_start_date, event_date) <= ?', [$queryEndDate->toDateString()])
+            ->whereRaw('COALESCE(event_end_date, event_start_date, event_date) >= ?', [$queryStartDate->toDateString()])
             ->when($categories->isNotEmpty(), function ($query) use ($categories): void {
                 $query->where(function ($nestedQuery) use ($categories): void {
                     $nestedQuery->where('categories', 'like', '%All%');
@@ -86,37 +175,73 @@ class FrontController extends Controller
                     }
                 });
             })
-            ->orderBy('event_date')
+            ->orderByRaw('COALESCE(event_start_date, event_date)')
             ->orderBy('id')
-            ->get(['id', 'event_name', 'description', 'event_date', 'categories'])
+            ->get(['id', 'event_name', 'description', 'event_date', 'event_start_date', 'event_end_date', 'event_type', 'categories', 'day_scope', 'created_at'])
             ->map(fn (Event $event): array => [
                 'id' => (int) $event->id,
                 'event_name' => (string) $event->event_name,
                 'description' => (string) $event->description,
-                'event_date' => (string) $event->event_date,
+                'event_date' => $event->event_date?->toDateString(),
+                'event_start_date' => $event->event_start_date?->toDateString() ?? $event->event_date?->toDateString(),
+                'event_end_date' => $event->event_end_date?->toDateString() ?? $event->event_start_date?->toDateString() ?? $event->event_date?->toDateString(),
+                'event_type' => (string) ($event->event_type ?? 'event'),
                 'categories' => (string) $event->categories,
+                'day_scope' => (string) ($event->day_scope ?? 'full_day'),
+                'created_at' => $event->created_at?->toISOString(),
             ]);
 
         $calendarDays = Calendar::query()
-            ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->whereBetween('date', [$queryStartDate->toDateString(), $queryEndDate->toDateString()])
+            ->when($categories->isNotEmpty(), function ($query) use ($categories): void {
+                $query->where(function ($nestedQuery) use ($categories): void {
+                    $nestedQuery->where('categories', 'like', '%All%');
+
+                    foreach ($categories as $category) {
+                        $nestedQuery->orWhere('categories', 'like', '%' . $category . '%');
+                    }
+                });
+            })
             ->orderBy('date')
-            ->get(['id', 'date', 'day_type', 'title', 'description'])
+            ->get(['id', 'date', 'day_type', 'event_id', 'categories', 'day_scope', 'title', 'description'])
             ->map(fn (Calendar $calendarDay): array => [
                 'id' => (int) $calendarDay->id,
                 'date' => $calendarDay->date->toDateString(),
                 'day_type' => (string) $calendarDay->day_type,
+                'event_id' => $calendarDay->event_id ? (int) $calendarDay->event_id : null,
+                'categories' => (string) ($calendarDay->categories ?? 'All'),
+                'day_scope' => (string) ($calendarDay->day_scope ?? 'full_day'),
                 'title' => $calendarDay->title,
                 'description' => $calendarDay->description,
             ]);
+
+        $times = $profileSwimmer
+            ? Time::query()
+                ->where('swimmer_id', $profileSwimmer->id)
+                ->orderByDesc('date')
+                ->orderByDesc('id')
+                ->get(['id', 'swimmer_id', 'test_type', 'time', 'date', 'location'])
+                ->map(fn (Time $time): array => [
+                    'id' => (int) $time->id,
+                    'swimmer_id' => (int) $time->swimmer_id,
+                    'test_type' => (string) $time->test_type,
+                    'time' => (string) $time->time,
+                    'date' => $time->date?->toDateString(),
+                    'location' => (string) $time->location,
+                ])
+            : collect();
 
         return response()->json([
             'data' => [
                 'month' => $month->format('Y-m'),
                 'user' => $this->serializeUser($user),
-                'swimmer' => $this->serializeSwimmer($swimmers->first()),
+                'selected_swimmer_id' => $selectedSwimmer ? (int) $selectedSwimmer->id : null,
+                'swimmer' => $this->serializeSwimmer($profileSwimmer),
                 'swimmers' => $swimmers->map(fn (Swimmer $swimmer): array => $this->serializeSwimmer($swimmer))->values(),
                 'events' => $events,
                 'calendar' => $calendarDays,
+                'times' => $times,
+                'training_group' => $this->serializeTrainingGroup($trainingGroup),
             ],
         ]);
     }
@@ -134,8 +259,10 @@ class FrontController extends Controller
             'full_name' => trim($user->first_name . ' ' . $user->last_name),
             'birth_date' => $user->birth_date?->toDateString(),
             'user_type' => (string) $user->user_type,
-            'swimmer_id' => $user->swimmer_id !== null ? (int) $user->swimmer_id : null,
-            'swimmer_ids' => $this->linkedSwimmerIds($user),
+            'swimmer_id' => $user->user_type !== 'other' && $user->swimmer_id !== null ? (int) $user->swimmer_id : null,
+            'swimmer_ids' => $user->user_type === 'other' ? [] : $this->linkedSwimmerIds($user),
+            'is_enabled' => (bool) $user->is_enabled,
+            'must_change_password' => (bool) $user->must_change_password,
             'created_at' => $user->created_at?->toISOString(),
         ];
     }
@@ -162,10 +289,32 @@ class FrontController extends Controller
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    private function serializeTrainingGroup(?TrainingGroup $trainingGroup): ?array
+    {
+        if (!$trainingGroup) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $trainingGroup->id,
+            'name' => (string) $trainingGroup->name,
+            'categories' => (string) $trainingGroup->categories,
+            'schedule' => is_array($trainingGroup->schedule) ? $trainingGroup->schedule : [],
+            'formatted_schedule' => $trainingGroup->formattedSchedule(),
+        ];
+    }
+
+    /**
      * @return Collection<int, Swimmer>
      */
     private function resolveSwimmers(PortalUser $user): Collection
     {
+        if ($user->user_type === 'other') {
+            return collect();
+        }
+
         $swimmerIds = $this->linkedSwimmerIds($user);
 
         if ($user->swimmer_id !== null) {
@@ -181,16 +330,43 @@ class FrontController extends Controller
                 ->orderBy('last_name')
                 ->get();
 
-        $matchedSwimmer = Swimmer::query()
-            ->where('first_name', $user->first_name)
-            ->where('last_name', $user->last_name)
-            ->first();
+        if ($user->user_type === 'swimmer') {
+            $matchedSwimmer = Swimmer::query()
+                ->where('first_name', $user->first_name)
+                ->where('last_name', $user->last_name)
+                ->first();
 
-        if ($matchedSwimmer && !$swimmers->contains('id', $matchedSwimmer->id)) {
-            $swimmers->push($matchedSwimmer);
+            if ($matchedSwimmer && !$swimmers->contains('id', $matchedSwimmer->id)) {
+                $swimmers->push($matchedSwimmer);
+            }
         }
 
         return $swimmers->values();
+    }
+
+    private function resolveTrainingGroup(?Swimmer $swimmer): ?TrainingGroup
+    {
+        $category = trim((string) ($swimmer?->category ?? ''));
+
+        if ($category === '') {
+            return null;
+        }
+
+        return TrainingGroup::query()
+            ->where(function ($query) use ($category): void {
+                $query->where('categories', 'like', '%All%')
+                    ->orWhere('categories', 'like', '%' . $category . '%');
+            })
+            ->orderBy('id')
+            ->get()
+            ->first(fn (TrainingGroup $trainingGroup): bool => $this->trainingGroupContainsCategory($trainingGroup, $category));
+    }
+
+    private function trainingGroupContainsCategory(TrainingGroup $trainingGroup, string $category): bool
+    {
+        $categories = array_filter(array_map('trim', explode(',', (string) $trainingGroup->categories)));
+
+        return in_array('All', $categories, true) || in_array($category, $categories, true);
     }
 
     /**

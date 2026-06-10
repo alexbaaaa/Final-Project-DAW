@@ -13,4 +13,11 @@ class Time extends Model
         'date',
         'location',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'date' => 'date',
+        ];
+    }
 }

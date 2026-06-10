@@ -18,6 +18,8 @@ class PortalUser extends Model
         'user_type',
         'password',
         'swimmer_id',
+        'is_enabled',
+        'must_change_password',
     ];
 
     protected $hidden = [
@@ -28,8 +30,15 @@ class PortalUser extends Model
     {
         return [
             'birth_date' => 'date',
+            'is_enabled' => 'boolean',
+            'must_change_password' => 'boolean',
             'password' => 'hashed',
             'swimmer_id' => 'integer',
         ];
+    }
+
+    public function defaultPassword(): string
+    {
+        return (string) $this->alias;
     }
 }
