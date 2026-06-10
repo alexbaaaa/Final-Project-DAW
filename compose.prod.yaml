@@ -4,15 +4,15 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: docker/nginx/Dockerfile
+      dockerfile: docker/nginx/Dockerfile.prod
     container_name: swimmingup_nginx
     depends_on:
       - frontend
       - backend
       - wordpress
-      - phpmyadmin
     ports:
       - "${HTTP_PORT:-80}:80"
+    restart: unless-stopped
     networks:
       - public
       - internal
@@ -20,30 +20,39 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: docker/frontend/Dockerfile
+      dockerfile: docker/frontend/Dockerfile.prod
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
     container_name: swimmingup_frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
-    environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+    restart: unless-stopped
     networks:
       - internal
 
   backend:
     build:
       context: .
-      dockerfile: docker/backend/Dockerfile
+      dockerfile: docker/backend/Dockerfile.prod
     container_name: swimmingup_backend
-    working_dir: /var/www/html
-    volumes:
-      - ./backend:/var/www/html
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     environment:
-      APP_ENV: ${APP_ENV:-local}
+      APP_NAME: ${APP_NAME:-Swimming Up}
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
       APP_DOMAIN: ${APP_DOMAIN:-swimmingup.hopto.org}
       APP_URL: ${APP_URL:-http://swimmingup.hopto.org/admin}
       ASSET_URL: ${ASSET_URL:-http://swimmingup.hopto.org/admin}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      LOG_LEVEL: ${LOG_LEVEL:-warning}
+      SESSION_DRIVER: ${SESSION_DRIVER:-file}
+      SESSION_DOMAIN: ${SESSION_DOMAIN:-swimmingup.hopto.org}
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-false}
+      CACHE_STORE: ${CACHE_STORE:-file}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
       DB_CONNECTION: ${LARAVEL_DB_CONNECTION:-mariadb}
       DB_HOST: mariadb
       DB_PORT: 3306
@@ -55,9 +64,8 @@ services:
       AUTH_DB_DATABASE: ${POSTGRES_DB}
       AUTH_DB_USERNAME: ${POSTGRES_USER}
       AUTH_DB_PASSWORD: ${POSTGRES_PASSWORD}
-    depends_on:
-      - mariadb
-      - postgres
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
+    restart: unless-stopped
     networks:
       - internal
 
@@ -71,6 +79,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
     networks:
       - internal
 
@@ -88,27 +102,35 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
       - ./database/mariadb/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u root -p\"$${MARIADB_ROOT_PASSWORD}\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
     networks:
       - internal
 
   wordpress:
-    ports:
-    - "8081:80"
     build:
       context: .
       dockerfile: docker/wordpress/Dockerfile
     container_name: swimmingup_wordpress
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
     environment:
       WORDPRESS_DB_HOST: mariadb:3306
       WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
       WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WP_HOME: ${WP_HOME:-http://swimmingup.hopto.org/blog}
+      WP_SITEURL: ${WP_SITEURL:-http://swimmingup.hopto.org/blog}
+      WP_CONTENT_URL: ${WP_CONTENT_URL:-http://swimmingup.hopto.org/blog/wp-content}
       WORDPRESS_CONFIG_EXTRA: |
-          define('WP_HOME', 'http://swimmingup.hopto.org/blog');
-          define('WP_SITEURL', 'http://swimmingup.hopto.org/blog');
-          define('WP_CONTENT_URL', 'http://swimmingup.hopto.org/blog/wp-content');
+          define('WP_HOME', getenv('WP_HOME') ?: 'http://swimmingup.hopto.org/blog');
+          define('WP_SITEURL', getenv('WP_SITEURL') ?: 'http://swimmingup.hopto.org/blog');
+          define('WP_CONTENT_URL', getenv('WP_CONTENT_URL') ?: 'http://swimmingup.hopto.org/blog/wp-content');
 
           define('COOKIEPATH', '/blog/');
           define('SITECOOKIEPATH', '/blog/');
@@ -118,21 +140,29 @@ services:
               $$_SERVER['REQUEST_URI'] = $$_SERVER['HTTP_X_FORWARDED_PREFIX'] . $$_SERVER['REQUEST_URI'];
           }
     volumes:
-      - ./wordpress/wp-content:/var/www/html/wp-content
       - wordpress_data:/var/www/html
+      - ./wordpress/wp-content/themes/swimmingup:/var/www/html/wp-content/themes/swimmingup:ro
+      - wordpress_uploads:/var/www/html/wp-content/uploads
+    restart: unless-stopped
     networks:
       - internal
 
   phpmyadmin:
     image: phpmyadmin:5.2-apache
     container_name: swimmingup_phpmyadmin
+    profiles:
+      - debug
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${PHPMYADMIN_PORT:-8081}:80"
     environment:
       PMA_HOST: mariadb
       PMA_PORT: 3306
-      PMA_ABSOLUTE_URI: http://swimmingup.hopto.org/phpmyadmin/
+      PMA_ABSOLUTE_URI: ${PMA_ABSOLUTE_URI:-http://localhost:8081/}
       UPLOAD_LIMIT: ${PHPMYADMIN_UPLOAD_LIMIT:-64M}
+    restart: unless-stopped
     networks:
       - internal
 
@@ -141,9 +171,10 @@ networks:
     name: swimmingup_public
   internal:
     name: swimmingup_internal
+    internal: true
 
 volumes:
   postgres_data:
   mariadb_data:
   wordpress_data:
-  frontend_node_modules:
+  wordpress_uploads:

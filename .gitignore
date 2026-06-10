@@ -26,11 +26,13 @@ TestResults.xml
 #promt para codex
 promt.txt
 estructura.txt
+*.txt
 
 ### Swimming Up ###
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 node_modules/
 vendor/
