@@ -26,6 +26,7 @@ TestResults.xml
 #promt para codex
 promt.txt
 estructura.txt
+*.txt
 
 ### Swimming Up ###
 .env

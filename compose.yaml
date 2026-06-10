@@ -41,9 +41,9 @@ services:
       - ./backend:/var/www/html
     environment:
       APP_ENV: ${APP_ENV:-local}
-      APP_DOMAIN: ${APP_DOMAIN:-swimmingup}
-      APP_URL: ${APP_URL:-http://swimmingup/admin}
-      ASSET_URL: ${ASSET_URL:-http://swimmingup/admin}
+      APP_DOMAIN: ${APP_DOMAIN:-swimmingup.hopto.org}
+      APP_URL: ${APP_URL:-http://swimmingup.hopto.org/admin}
+      ASSET_URL: ${ASSET_URL:-http://swimmingup.hopto.org/admin}
       DB_CONNECTION: ${LARAVEL_DB_CONNECTION:-mariadb}
       DB_HOST: mariadb
       DB_PORT: 3306
@@ -106,9 +106,9 @@ services:
       WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
       WORDPRESS_CONFIG_EXTRA: |
-          define('WP_HOME', 'http://swimmingup/blog');
-          define('WP_SITEURL', 'http://swimmingup/blog');
-          define('WP_CONTENT_URL', 'http://swimmingup/blog/wp-content');
+          define('WP_HOME', 'http://swimmingup.hopto.org/blog');
+          define('WP_SITEURL', 'http://swimmingup.hopto.org/blog');
+          define('WP_CONTENT_URL', 'http://swimmingup.hopto.org/blog/wp-content');
 
           define('COOKIEPATH', '/blog/');
           define('SITECOOKIEPATH', '/blog/');
@@ -131,7 +131,7 @@ services:
     environment:
       PMA_HOST: mariadb
       PMA_PORT: 3306
-      PMA_ABSOLUTE_URI: http://swimmingup/phpmyadmin/
+      PMA_ABSOLUTE_URI: http://swimmingup.hopto.org/phpmyadmin/
       UPLOAD_LIMIT: ${PHPMYADMIN_UPLOAD_LIMIT:-64M}
     networks:
       - internal
