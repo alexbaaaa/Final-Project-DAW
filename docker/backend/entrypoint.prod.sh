@@ -9,6 +9,10 @@ if [ "$1" = "apache2-foreground" ] && [ "${APP_ENV:-production}" = "production" 
     exit 1
 fi
 
+if [ "$1" = "apache2-foreground" ]; then
+    php artisan package:discover --ansi
+fi
+
 if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
     php artisan migrate --force
 fi
