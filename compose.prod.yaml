@@ -142,7 +142,7 @@ services:
     profiles:
       - debug
     depends_on:
-      mariadb
+      - mariadb
     ports:
       - "127.0.0.1:${PHPMYADMIN_PORT:-8081}:80"
     environment:
