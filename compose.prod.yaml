@@ -34,10 +34,8 @@ services:
       dockerfile: docker/backend/Dockerfile.prod
     container_name: swimmingup_backend
     depends_on:
-      mariadb:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
+      - mariadb
+      - postgres
     environment:
       APP_NAME: ${APP_NAME:-Swimming Up}
       APP_ENV: ${APP_ENV:-production}
@@ -66,6 +64,8 @@ services:
       AUTH_DB_PASSWORD: ${POSTGRES_PASSWORD}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
     restart: unless-stopped
+    volumens:
+      - backend_laravel:/var/www/html/backend/storage
     networks:
       - internal
 
@@ -79,12 +79,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/postgres/init:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
     restart: unless-stopped
     networks:
       - internal
@@ -103,12 +97,6 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
       - ./database/mariadb/init:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 --silent"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
     restart: unless-stopped
     networks:
       - internal
@@ -119,8 +107,7 @@ services:
       dockerfile: docker/wordpress/Dockerfile
     container_name: swimmingup_wordpress
     depends_on:
-      mariadb:
-        condition: service_healthy
+      - mariadb
     environment:
       WORDPRESS_DB_HOST: mariadb:3306
       WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
@@ -155,8 +142,7 @@ services:
     profiles:
       - debug
     depends_on:
-      mariadb:
-        condition: service_healthy
+      mariadb
     ports:
       - "127.0.0.1:${PHPMYADMIN_PORT:-8081}:80"
     environment:
