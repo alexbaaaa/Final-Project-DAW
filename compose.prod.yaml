@@ -64,7 +64,7 @@ services:
       AUTH_DB_PASSWORD: ${POSTGRES_PASSWORD}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
     restart: unless-stopped
-    volumens:
+    volumes:
       - backend_laravel:/var/www/html/backend/storage
     networks:
       - internal
