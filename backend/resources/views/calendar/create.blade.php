@@ -3,6 +3,12 @@
 @section('title', 'Create Calendar Day')
 
 @section('content')
+    @php
+        $selectedCategories = old('categories', $selectedCategories);
+        $selectedDayScope = old('day_scope', 'full_day');
+        $selectedDayType = old('day_type', array_key_first($dayTypeLabels));
+    @endphp
+
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div>
             <h1 class="h3 admin-page-title mb-1">Create Calendar Day</h1>
@@ -23,9 +29,58 @@
                     <label for="day_type" class="form-label">Day Type</label>
                     <select id="day_type" name="day_type" class="form-select" required>
                         @foreach($dayTypeLabels as $value => $label)
-                            <option value="{{ $value }}" @if(old('day_type') === $value) selected @endif>{{ $label }}</option>
+                            <option value="{{ $value }}" @selected($selectedDayType === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div class="col-md-6 @if($selectedDayType !== 'registration_deadline') d-none @endif" data-calendar-event-field>
+                    <label for="event_id" class="form-label">Related Event</label>
+                    <select id="event_id" name="event_id" class="form-select" @if($selectedDayType === 'registration_deadline') required @endif>
+                        <option value="">Select event</option>
+                        @foreach($eventOptions as $eventOption)
+                            @php
+                                $eventStartDate = $eventOption->event_start_date?->toDateString() ?? $eventOption->event_date?->toDateString();
+                                $eventEndDate = $eventOption->event_end_date?->toDateString() ?? $eventStartDate;
+                                $eventDateLabel = $eventStartDate === $eventEndDate ? $eventStartDate : $eventStartDate.' - '.$eventEndDate;
+                            @endphp
+                            <option value="{{ $eventOption['id'] }}" @selected((string) old('event_id') === (string) $eventOption['id'])>
+                                {{ $eventOption['event_name'] }} @if($eventDateLabel) ({{ $eventDateLabel }}) @endif
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="day_scope" class="form-label">Day Scope</label>
+                    <select id="day_scope" name="day_scope" class="form-select" required>
+                        @foreach($dayScopeLabels as $value => $label)
+                            <option value="{{ $value }}" @selected($selectedDayScope === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Categories Involved</label>
+                    <div class="border rounded p-3">
+                        <div class="row g-2">
+                            @foreach($categoryOptions as $category)
+                                <div class="col-sm-6 col-lg-4">
+                                    <div class="form-check">
+                                        <input
+                                            class="form-check-input"
+                                            id="calendar_category_{{ $loop->index }}"
+                                            name="categories[]"
+                                            data-calendar-category
+                                            @if($category === 'All') data-category-all="true" @endif
+                                            type="checkbox"
+                                            value="{{ $category }}"
+                                            @checked(in_array($category, $selectedCategories, true))
+                                        >
+                                        <label class="form-check-label" for="calendar_category_{{ $loop->index }}">{{ $category }}</label>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <small class="text-secondary">All includes every category and cannot be combined with another option.</small>
                 </div>
                 <div class="col-md-12">
                     <label for="title" class="form-label">Title</label>
@@ -43,3 +98,57 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    (() => {
+        const dayTypeField = document.getElementById('day_type');
+        const eventFieldWrapper = document.querySelector('[data-calendar-event-field]');
+        const eventField = document.getElementById('event_id');
+        const categoryFields = Array.from(document.querySelectorAll('[data-calendar-category]'));
+        const allField = categoryFields.find((field) => field.dataset.categoryAll === 'true');
+
+        const toggleEventField = () => {
+            if (!dayTypeField || !eventFieldWrapper || !eventField) {
+                return;
+            }
+
+            const isRegistrationDeadline = dayTypeField.value === 'registration_deadline';
+
+            eventFieldWrapper.classList.toggle('d-none', !isRegistrationDeadline);
+            eventField.required = isRegistrationDeadline;
+
+            if (!isRegistrationDeadline) {
+                eventField.value = '';
+            }
+        };
+
+        if (dayTypeField) {
+            dayTypeField.addEventListener('change', toggleEventField);
+            toggleEventField();
+        }
+
+        if (!allField) {
+            return;
+        }
+
+        categoryFields.forEach((field) => {
+            field.addEventListener('change', () => {
+                if (field === allField && field.checked) {
+                    categoryFields
+                        .filter((categoryField) => categoryField !== allField)
+                        .forEach((categoryField) => {
+                            categoryField.checked = false;
+                        });
+
+                    return;
+                }
+
+                if (field !== allField && field.checked) {
+                    allField.checked = false;
+                }
+            });
+        });
+    })();
+</script>
+@endpush

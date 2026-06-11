@@ -4,6 +4,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use App\Http\Middleware\AdminAuthenticate;
+use App\Http\Middleware\AdminAuthorize;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 | Request::HEADER_X_FORWARDED_PROTO
                 | Request::HEADER_X_FORWARDED_PREFIX
         );
+
+        $middleware->alias([
+            'admin.auth' => AdminAuthenticate::class,
+            'admin.can' => AdminAuthorize::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

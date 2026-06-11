@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PortalUser;
+use App\Models\PortalUserAlias;
 use App\Models\Swimmer;
 use App\Models\Time;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -48,7 +51,12 @@ class SwimmerController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        Swimmer::query()->create($this->validatedPayload($request));
+        $payload = $this->validatedPayload($request);
+
+        DB::transaction(function () use ($payload): void {
+            $swimmer = Swimmer::query()->create($payload);
+            $this->createPortalUserForSwimmer($swimmer);
+        });
 
         return redirect()
             ->route('admin.swimmers.index')
@@ -82,6 +90,7 @@ class SwimmerController extends Controller
         $record = Swimmer::query()->findOrFail($swimmer);
         $record->fill($this->validatedPayload($request));
         $record->save();
+        $this->syncPortalUserAvailabilityForSwimmer($record);
 
         return redirect()
             ->route('admin.swimmers.edit', $swimmer)
@@ -109,5 +118,70 @@ class SwimmerController extends Controller
             'category' => ['required', 'string', Rule::in(self::CATEGORIES)],
             'gender' => ['required', 'string', Rule::in(self::GENDERS)],
         ]);
+    }
+
+    private function createPortalUserForSwimmer(Swimmer $swimmer): void
+    {
+        DB::connection('auth_pgsql')->transaction(function () use ($swimmer): void {
+            $birthDate = $swimmer->birth_date?->toDateString();
+
+            if ($birthDate === null) {
+                throw new \RuntimeException('Swimmer birth date is required to create an app user.');
+            }
+
+            $alias = PortalUserAlias::makeUnique($swimmer->first_name, $swimmer->last_name, $birthDate);
+
+            $user = PortalUser::query()->create([
+                'alias' => $alias,
+                'first_name' => $swimmer->first_name,
+                'last_name' => $swimmer->last_name,
+                'birth_date' => $birthDate,
+                'user_type' => 'swimmer',
+                'password' => $alias,
+                'swimmer_id' => $swimmer->id,
+                'is_enabled' => $this->isSwimmerOldEnough($swimmer),
+                'must_change_password' => true,
+            ]);
+
+            DB::connection('auth_pgsql')
+                ->table('portal_user_swimmers')
+                ->insert([
+                    'user_id' => $user->id,
+                    'swimmer_id' => $swimmer->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+        });
+    }
+
+    private function syncPortalUserAvailabilityForSwimmer(Swimmer $swimmer): void
+    {
+        DB::connection('auth_pgsql')->transaction(function () use ($swimmer): void {
+            $linkedUserIds = DB::connection('auth_pgsql')
+                ->table('portal_user_swimmers')
+                ->where('swimmer_id', $swimmer->id)
+                ->pluck('user_id')
+                ->map(fn ($userId): int => (int) $userId)
+                ->all();
+
+            PortalUser::query()
+                ->where('user_type', 'swimmer')
+                ->where(function ($query) use ($swimmer, $linkedUserIds): void {
+                    $query->where('swimmer_id', $swimmer->id);
+
+                    if ($linkedUserIds !== []) {
+                        $query->orWhereIn('id', $linkedUserIds);
+                    }
+                })
+                ->update([
+                    'birth_date' => $swimmer->birth_date?->toDateString(),
+                    'is_enabled' => $this->isSwimmerOldEnough($swimmer),
+                ]);
+        });
+    }
+
+    private function isSwimmerOldEnough(Swimmer $swimmer): bool
+    {
+        return $swimmer->birth_date !== null && $swimmer->birth_date->age >= 16;
     }
 }

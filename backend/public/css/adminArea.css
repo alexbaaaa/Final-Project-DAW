@@ -104,3 +104,39 @@ body {
 .admin-subtle {
     color: #5e6f86;
 }
+
+.training-schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.training-schedule-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid #c9d9f1;
+    border-left: 4px solid var(--admin-yellow);
+    border-radius: 0.45rem;
+    background: var(--admin-blue-soft);
+    color: var(--admin-text);
+    padding: 0.65rem 0.75rem;
+}
+
+.training-schedule-empty {
+    border: 1px dashed var(--admin-border);
+    border-radius: 0.45rem;
+    color: #6c7d92;
+    padding: 0.75rem;
+}
+
+.training-schedule-editor {
+    background: #fbfdff;
+}
+
+.training-schedule-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
