@@ -162,6 +162,7 @@ networks:
     internal: true
 
 volumes:
+  backend_laravel:
   postgres_data:
   mariadb_data:
   wordpress_data:
