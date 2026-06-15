@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 
 class Calendar extends Model
@@ -11,6 +12,9 @@ class Calendar extends Model
     protected $fillable = [
         'date',
         'day_type',
+        'event_id',
+        'categories',
+        'day_scope',
         'title',
         'description',
     ];
@@ -20,5 +24,10 @@ class Calendar extends Model
         return [
             'date' => 'date',
         ];
+    }
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
     }
 }

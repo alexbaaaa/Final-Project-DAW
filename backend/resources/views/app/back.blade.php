@@ -10,10 +10,24 @@
     <link rel="stylesheet" href="{{ asset('css/adminArea.css') }}">
 </head>
 <body class="admin-back-shell">
+    @php
+        $currentAdminUser = $currentAdminUser ?? null;
+        $currentAdminRole = $currentAdminUser?->role ?? session('admin_user_role');
+        $adminBrand = $currentAdminUser?->alias ?? session('admin_user_alias', 'Swimming Up Admin');
+        $canManageSwimmers = in_array($currentAdminRole, ['root', 'master'], true);
+        $canManageEvents = in_array($currentAdminRole, ['root', 'master', 'admin'], true);
+        $canManageCalendar = in_array($currentAdminRole, ['root', 'master', 'admin'], true);
+        $canManageTrainingGroups = in_array($currentAdminRole, ['root', 'master', 'admin'], true);
+        $canManageTimes = in_array($currentAdminRole, ['root', 'master', 'admin'], true);
+        $canManageAppUsers = in_array($currentAdminRole, ['root', 'master'], true);
+        $canViewAdminUsers = in_array($currentAdminRole, ['root', 'master'], true);
+        $canCreateEvents = $canManageEvents;
+    @endphp
+
     <header class="admin-topbar sticky-top shadow-sm">
         <nav class="navbar navbar-expand-lg py-3">
             <div class="container">
-                <a class="navbar-brand fw-semibold" href="{{ route('admin.home') }}">Swimming Up Admin</a>
+                <a class="navbar-brand fw-semibold" href="{{ route('admin.home') }}">Welcome to the admin area <span>{{ $adminBrand }}</span></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminMenu" aria-controls="adminMenu" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -23,33 +37,60 @@
                         <li class="nav-item">
                             <a class="nav-link @if(request()->routeIs('admin.home')) active @endif" href="{{ route('admin.home') }}">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link @if(request()->routeIs('admin.swimmers.*')) active @endif" href="{{ route('admin.swimmers.index') }}">Swimmers</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @if(request()->routeIs('admin.events.*')) active @endif" href="{{ route('admin.events.index') }}">Events</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @if(request()->routeIs('admin.calendar.*')) active @endif" href="{{ route('admin.calendar.index') }}">Calendar</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @if(request()->routeIs('admin.times.*')) active @endif" href="{{ route('admin.times.index') }}">Times</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle @if(request()->routeIs('admin.users.*') || request()->routeIs('admin.users_admin.*')) active @endif" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Users
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item @if(request()->routeIs('admin.users.*')) active @endif" href="{{ route('admin.users.index') }}">APP</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item @if(request()->routeIs('admin.users_admin.*')) active @endif" href="{{ route('admin.users_admin.index') }}">Admin Area</a>
-                                </li>
-                            </ul>
-                        </li>
+                        @if($canManageSwimmers)
+                            <li class="nav-item">
+                                <a class="nav-link @if(request()->routeIs('admin.swimmers.*')) active @endif" href="{{ route('admin.swimmers.index') }}">Swimmers</a>
+                            </li>
+                        @endif
+                        @if($canManageEvents)
+                            <li class="nav-item">
+                                <a class="nav-link @if(request()->routeIs('admin.events.*')) active @endif" href="{{ route('admin.events.index') }}">Events</a>
+                            </li>
+                        @endif
+                        @if($canManageCalendar)
+                            <li class="nav-item">
+                                <a class="nav-link @if(request()->routeIs('admin.calendar.*')) active @endif" href="{{ route('admin.calendar.index') }}">Calendar</a>
+                            </li>
+                        @endif
+                        @if($canManageTrainingGroups)
+                            <li class="nav-item">
+                                <a class="nav-link @if(request()->routeIs('admin.training_groups.*')) active @endif" href="{{ route('admin.training_groups.index') }}">Training Groups</a>
+                            </li>
+                        @endif
+                        @if($canManageTimes)
+                            <li class="nav-item">
+                                <a class="nav-link @if(request()->routeIs('admin.times.*')) active @endif" href="{{ route('admin.times.index') }}">Times</a>
+                            </li>
+                        @endif
+                        @if($canManageAppUsers || $canViewAdminUsers)
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle @if(request()->routeIs('admin.users.*') || request()->routeIs('admin.users_admin.*')) active @endif" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Users
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    @if($canManageAppUsers)
+                                        <li>
+                                            <a class="dropdown-item @if(request()->routeIs('admin.users.*')) active @endif" href="{{ route('admin.users.index') }}">APP</a>
+                                        </li>
+                                    @endif
+                                    @if($canViewAdminUsers)
+                                        <li>
+                                            <a class="dropdown-item @if(request()->routeIs('admin.users_admin.*')) active @endif" href="{{ route('admin.users_admin.index') }}">Admin Area</a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </li>
+                        @endif
+                        @if($canCreateEvents)
+                            <li class="nav-item ms-lg-2">
+                                <a class="btn btn-sm admin-btn-primary mt-1 mt-lg-0" href="{{ route('admin.events.create') }}">Create Event</a>
+                            </li>
+                        @endif
                         <li class="nav-item ms-lg-2">
-                            <a class="btn btn-sm admin-btn-primary mt-1 mt-lg-0" href="{{ route('admin.events.create') }}">Create Event</a>
+                            <form action="{{ route('admin.logout') }}" method="post">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-secondary mt-1 mt-lg-0">Logout</button>
+                            </form>
                         </li>
                     </ul>
                 </div>

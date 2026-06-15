@@ -2,115 +2,169 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Swimmer;
 use App\Models\UserAdmin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class UserAdminController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $usersAdmin = UserAdmin::query()
             ->orderBy('id')
-            ->get(['id', 'first_name', 'last_name', 'password', 'swimmer_id']);
+            ->get(['id', 'alias', 'role', 'is_enabled', 'must_change_password']);
 
         return view('usersAdmin.index', [
             'usersAdmin' => $usersAdmin,
-            'swimmerOptions' => $this->swimmerOptions(),
+            'currentAdminUser' => $this->currentAdminUser($request),
         ]);
     }
 
     public function create(): View
     {
         return view('usersAdmin.create', [
-            'swimmerOptions' => $this->swimmerOptions(),
+            'roles' => UserAdmin::creatableRoles(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        UserAdmin::query()->create($this->validatedPayload($request, true));
+        $payload = $this->validatedPayload($request);
+
+        UserAdmin::query()->create([
+            'alias' => $payload['alias'],
+            'role' => $payload['role'],
+            'password' => $payload['alias'],
+            'is_enabled' => true,
+            'must_change_password' => true,
+        ]);
 
         return redirect()
             ->route('admin.users_admin.index')
-            ->with('status_success', 'Admin user created successfully in PostgreSQL.');
-    }
-
-    public function show(int $userAdmin): View
-    {
-        return view('usersAdmin.show', [
-            'userAdmin' => UserAdmin::query()->findOrFail($userAdmin),
-            'swimmerOptions' => $this->swimmerOptions(),
-        ]);
+            ->with('status_success', "Admin user created successfully. Initial password: {$payload['alias']}");
     }
 
     public function edit(int $userAdmin): View
     {
+        $record = UserAdmin::query()->findOrFail($userAdmin);
+
+        if ($record->isRoot()) {
+            abort(403, 'The root user cannot be edited.');
+        }
+
         return view('usersAdmin.edit', [
-            'userAdmin' => UserAdmin::query()->findOrFail($userAdmin),
-            'swimmerOptions' => $this->swimmerOptions(),
+            'userAdmin' => $record,
+            'roles' => UserAdmin::creatableRoles(),
         ]);
     }
 
     public function update(Request $request, int $userAdmin): RedirectResponse
     {
         $record = UserAdmin::query()->findOrFail($userAdmin);
-        $record->fill($this->validatedPayload($request, false));
+
+        if ($record->isRoot()) {
+            abort(403, 'The root user cannot be edited.');
+        }
+
+        $payload = $this->validatedPayload($request, $record->id);
+        $updatePayload = [
+            'alias' => $payload['alias'],
+            'role' => $payload['role'],
+        ];
+
+        if ($payload['alias'] !== $record->alias) {
+            $updatePayload['password'] = $payload['alias'];
+            $updatePayload['must_change_password'] = true;
+        }
+
+        $record->fill($updatePayload);
         $record->save();
 
         return redirect()
             ->route('admin.users_admin.edit', $userAdmin)
-            ->with('status_success', 'Admin user updated successfully in PostgreSQL.');
+            ->with('status_success', 'Admin user updated successfully.');
     }
 
-    public function destroy(int $userAdmin): RedirectResponse
+    public function destroy(Request $request, int $userAdmin): RedirectResponse
     {
-        UserAdmin::query()->findOrFail($userAdmin)->delete();
+        $currentAdminUser = $this->currentAdminUser($request);
+        $record = UserAdmin::query()->findOrFail($userAdmin);
+
+        if (!$currentAdminUser->canDeleteAdminUser($record)) {
+            abort(403, 'You do not have permission to delete this admin user.');
+        }
+
+        $record->delete();
 
         return redirect()
             ->route('admin.users_admin.index')
             ->with('status_success', "Admin user #{$userAdmin} deleted successfully from PostgreSQL.");
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function validatedPayload(Request $request, bool $passwordRequired): array
+    public function toggle(Request $request, int $userAdmin): RedirectResponse
     {
-        $passwordRules = ['nullable', 'string', 'min:8'];
+        $currentAdminUser = $this->currentAdminUser($request);
+        $record = UserAdmin::query()->findOrFail($userAdmin);
 
-        if ($passwordRequired) {
-            $passwordRules[0] = 'required';
+        if (!$currentAdminUser->canToggleAdminUser($record)) {
+            abort(403, 'Only root can enable or disable admin users.');
         }
 
-        $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
-            'password' => $passwordRules,
-            'swimmer_id' => ['nullable', 'integer', 'min:1', 'exists:swimmers,id'],
-        ]);
+        $record->forceFill([
+            'is_enabled' => !$record->is_enabled,
+        ])->save();
 
-        if (!$passwordRequired && empty($validated['password'])) {
-            unset($validated['password']);
+        return redirect()
+            ->route('admin.users_admin.index')
+            ->with('status_success', "Admin user {$record->alias} updated successfully.");
+    }
+
+    public function resetPassword(Request $request, int $userAdmin): RedirectResponse
+    {
+        $currentAdminUser = $this->currentAdminUser($request);
+
+        if (!$currentAdminUser->isRoot()) {
+            abort(403, 'Only root can reset admin user passwords.');
         }
 
-        return $validated;
+        $record = UserAdmin::query()->findOrFail($userAdmin);
+        $record->forceFill([
+            'password' => $record->defaultPassword(),
+            'must_change_password' => true,
+        ])->save();
+
+        return redirect()
+            ->route('admin.users_admin.index')
+            ->with('status_success', "Password for {$record->alias} was reset to the default value.");
     }
 
     /**
-     * @return array<int, string>
+     * @return array<string, mixed>
      */
-    private function swimmerOptions(): array
+    private function validatedPayload(Request $request, ?int $ignoreUserAdminId = null): array
     {
-        return Swimmer::query()
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get(['id', 'first_name', 'last_name'])
-            ->mapWithKeys(fn (Swimmer $swimmer): array => [
-                (int) $swimmer->id => trim($swimmer->first_name . ' ' . $swimmer->last_name),
-            ])
-            ->all();
+        return $request->validate([
+            'alias' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-z0-9._-]+$/',
+                Rule::unique('auth_pgsql.user_admins', 'alias')->ignore($ignoreUserAdminId),
+            ],
+            'role' => ['required', Rule::in(UserAdmin::creatableRoles())],
+        ]);
+    }
+
+    private function currentAdminUser(Request $request): UserAdmin
+    {
+        $currentAdminUser = $request->attributes->get('currentAdminUser');
+
+        if (!$currentAdminUser instanceof UserAdmin) {
+            abort(403, 'No admin user is authenticated.');
+        }
+
+        return $currentAdminUser;
     }
 }

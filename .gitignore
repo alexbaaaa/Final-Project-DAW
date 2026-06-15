@@ -25,6 +25,8 @@ TestResults.xml
 .gitmessage
 #promt para codex
 *.txt
+estructura.txt
+*.txt
 
 ### Swimming Up ###
 .env
