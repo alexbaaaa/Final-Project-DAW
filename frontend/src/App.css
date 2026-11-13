@@ -1001,12 +1001,12 @@
   font-size: 1.05rem;
 }
 
-@keyframes auto-flip-word {
-  0%,
-  70%,
-  100% {
-    transform: rotateX(0deg);
-  }
+.training-group-page {
+  display: grid;
+  gap: 18px;
+  width: min(1280px, 100%);
+  margin: 34px auto 0;
+}
 
 .training-group-hero,
 .training-week-section {

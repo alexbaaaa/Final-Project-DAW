@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const TRAINING_WEEK_DAYS = [
-  { label: 'Mon', value: 'monday' },
-  { label: 'Tue', value: 'tuesday' },
-  { label: 'Wed', value: 'wednesday' },
-  { label: 'Thu', value: 'thursday' },
-  { label: 'Fri', value: 'friday' },
-  { label: 'Sat', value: 'saturday' },
-  { label: 'Sun', value: 'sunday' },
-]
-const TRAINING_HOURS = Array.from({ length: 18 }, (_, index) => index + 6)
-const TRAINING_BLOCKING_CALENDAR_TYPES = new Set(['holiday_no_training', 'training_suspended'])
+const TRAINING_DAY_VALUES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+const TRAINING_WEEK_HOURS = Array.from({ length: 18 }, (_, index) => index + 6)
+const TIME_DISTANCES_BY_STYLE = {
+  Libres: ['50m', '100m', '200m', '400m', '800m', '1500m'],
+  Espalda: ['50m', '100m', '200m'],
+  Braza: ['50m', '100m', '200m'],
+  Mariposa: ['50m', '100m', '200m'],
+  Estilos: ['200m', '400m'],
+}
 
 function AppIndex({ apiBaseUrl, path, session, onLogout, onNavigate, onPasswordRequired }) {
   const [monthDate, setMonthDate] = useState(() => startOfMonth(new Date()))
@@ -80,8 +78,10 @@ function AppIndex({ apiBaseUrl, path, session, onLogout, onNavigate, onPasswordR
     return () => controller.abort()
   }, [apiBaseUrl, monthKey, onPasswordRequired, selectedSwimmerId, session.user.id])
 
-  const events = appData?.events || []
-  const calendar = appData?.calendar || []
+  const events = useMemo(() => appData?.events || [], [appData])
+  const calendar = useMemo(() => appData?.calendar || [], [appData])
+  const times = useMemo(() => appData?.times || [], [appData])
+  const trainingGroup = appData?.training_group || null
   const linkedSwimmers = getLinkedSwimmers(appData, session)
   const swimmer = getSelectedSwimmer(appData, session, linkedSwimmers)
   const activeSwimmers = swimmer ? [swimmer] : linkedSwimmers
@@ -100,7 +100,12 @@ function AppIndex({ apiBaseUrl, path, session, onLogout, onNavigate, onPasswordR
     () => buildCalendarDays(monthDate, events, calendar),
     [calendar, events, monthDate],
   )
-  const currentSection = getSection(path)
+  const trainingWeekDays = useMemo(() => buildCurrentWeekDays(new Date()), [])
+  const trainingWeekItems = useMemo(
+    () => buildTrainingWeekItems(trainingGroup, events, calendar, trainingWeekDays),
+    [calendar, events, trainingGroup, trainingWeekDays],
+  )
+  const currentSection = getSection(path, isControlUser)
 
   const goToPreviousMonth = () => {
     setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))
@@ -327,22 +332,13 @@ function AppIndex({ apiBaseUrl, path, session, onLogout, onNavigate, onPasswordR
       )}
 
       {currentSection === 'training' && (
-        <InfoPage
-          eyebrow="Training group"
-          title={categorySummary || 'No training group'}
-          lines={
-            linkedSwimmers.length
-              ? linkedSwimmers.map((linkedSwimmer) => `${linkedSwimmer.full_name} - ${linkedSwimmer.category}`)
-              : ['This user has no linked swimmer profile yet.']
-          }
-        />
-      )}
-
-      {currentSection === 'events' && (
-        <InfoPage
-          eyebrow="Events"
-          title="Current month events"
-          lines={events.length ? events.map((event) => `${event.event_date} - ${event.event_name}`) : ['No events found for this month.']}
+        <TrainingGroupPage
+          categorySummary={categorySummary}
+          error={error}
+          isLoading={isLoading}
+          trainingGroup={trainingGroup}
+          weekDays={trainingWeekDays}
+          weekItems={trainingWeekItems}
         />
       )}
 
@@ -368,20 +364,6 @@ function AppIndex({ apiBaseUrl, path, session, onLogout, onNavigate, onPasswordR
   function handleMenuNavigation(nextPath) {
     onNavigate(nextPath)
   }
-}
-
-function InfoPage({ eyebrow, lines, title }) {
-  return (
-    <section className="info-page" aria-labelledby="info-title">
-      <p className="home-eyebrow">{eyebrow}</p>
-      <h1 id="info-title">{title}</h1>
-      <div className="info-lines">
-        {lines.map((line) => (
-          <p key={line}>{line}</p>
-        ))}
-      </div>
-    </section>
-  )
 }
 
 function buildCalendarDays(monthDate, events, calendar) {

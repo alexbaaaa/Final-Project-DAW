@@ -53,3 +53,6 @@ wordpress/wp-content/plugins/hello.php
 wordpress/wp-content/plugins/index.php
 wordpress/wp-content/themes/index.php
 wordpress/wp-content/themes/twentytwenty*/
+
+# WordPress core upgrade temp files
+wordpress/wp-content/upgrade/
