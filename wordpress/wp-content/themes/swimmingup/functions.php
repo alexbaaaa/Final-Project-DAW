@@ -229,15 +229,15 @@ function swimmingup_customize_register( $wp_customize ) {
 add_action( 'customize_register', 'swimmingup_customize_register' );
 
 function swimmingup_get_external_app_url() {
-	$url = get_theme_mod( 'swimmingup_external_app_url', 'http:/swimmingup' );
+	$url = get_theme_mod( 'swimmingup_external_app_url', 'http:/swimmingup.hopto.org' );
 
 	$legacy_defaults = array(
-		'https://swimmingup.app',
-		'http://swimmingup.app',
+		'https://swimmingup.hopto.org',
+		'http://swimmingup.hopto.org',
 	);
 
 	if ( empty( $url ) || in_array( untrailingslashit( $url ), $legacy_defaults, true ) ) {
-		$url = 'http:/swimmingup';
+		$url = 'http:/swimmingup.hopto.org';
 	}
 
 	if ( 1 === preg_match( '#^https?:/[^/]#i', $url ) ) {
